@@ -3,20 +3,13 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import NavBar from "../NavBar";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-    }
-  }, [status, router]);
-
-  if (status === "loading" || status === "unauthenticated") {
+  if (status === "loading") {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
@@ -30,6 +23,11 @@ export default function Dashboard() {
     );
   }
 
+  if (!session) {
+    router.push("/auth/signin");
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
@@ -41,16 +39,16 @@ export default function Dashboard() {
             <div className="flex items-center mb-6">
               <div className="w-16 h-16 bg-blue-500 rounded-full mr-4 flex items-center justify-center">
                 <span className="text-white text-2xl font-semibold">
-                  {session?.user?.name?.charAt(0) ||
-                    session?.user?.email?.charAt(0) ||
+                  {session.user?.name?.charAt(0) ||
+                    session.user?.email?.charAt(0) ||
                     "U"}
                 </span>
               </div>
               <div>
                 <h2 className="text-2xl font-semibold text-gray-800">
-                  Welcome back, {session?.user?.name || session?.user?.email}!
+                  Welcome back, {session.user?.name || session.user?.email}!
                 </h2>
-                <p className="text-gray-600">{session?.user?.email}</p>
+                <p className="text-gray-600">{session.user?.email}</p>
               </div>
             </div>
 
