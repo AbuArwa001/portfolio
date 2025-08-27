@@ -40,30 +40,45 @@ const data = {
     avatar: "/avatars/148.jpg",
   },
   navMain: [
+    // {
+    //   title: "Dashboard",
+    //   url: "#",
+    //   icon: IconDashboard,
+    // },
     {
-      title: "Dashboard",
-      url: "#",
+      title: "Overview",
+      url: "/",
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
-      url: "#",
-      icon: IconListDetails,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: IconChartBar,
-    },
-    {
-      title: "Projects",
-      url: "#",
+      title: "Profile",
+      url: "/profile",
       icon: IconFolder,
     },
     {
-      title: "Team",
-      url: "#",
+      title: "Projects",
+      url: "/projects",
+      icon: IconFolder,
+    },
+    {
+      title: "Skills & Tech",
+      url: "/skills",
+      icon: IconListDetails,
+    },
+    // {
+    //   title: "Lifecycle",
+    //   url: "#",
+    //   icon: IconListDetails,
+    // },
+    {
+      title: "Activity Feed",
+      url: "/activity",
       icon: IconUsers,
+    },
+    {
+      title: "Contact Details",
+      url: "#",
+      icon: IconChartBar,
     },
   ],
   navClouds: [
@@ -133,20 +148,21 @@ const data = {
   ],
   documents: [
     {
-      name: "Data Library",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
-      name: "Reports",
+      name: "Resume",
       url: "#",
       icon: IconReport,
     },
     {
-      name: "Word Assistant",
+      name: "Contact Download",
       url: "#",
-      icon: IconFileWord,
+      icon: IconDatabase,
     },
+
+    // {
+    //   name: "Word Assistant",
+    //   url: "#",
+    //   icon: IconFileWord,
+    // },
   ],
 };
 

@@ -9,16 +9,17 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import data from "./data.json";
+import ContributionHeatmap from "@/components/ContributionHeatmap";
 
 export default function Page() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-    }
-  }, [status, router]);
+  // useEffect(() => {
+  //   if (status === "unauthenticated") {
+  //     router.push("/auth/signin");
+  //   }
+  // }, [status, router]);
 
   // loading state
   if (status === "loading") {
@@ -29,32 +30,21 @@ export default function Page() {
     );
   }
   // Only render dashboard if authenticated
-  if (status === "authenticated") {
-    return (
-      <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
-          } as React.CSSProperties
-        }
-      >
-        <AppSidebar variant="inset" />
-        <SidebarInset>
-          <SiteHeader />
-          <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2">
-              <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                <SectionCards />
-                <div className="px-4 lg:px-6">
-                  <ChartAreaInteractive />
-                </div>
-                <DataTable data={data} />
-              </div>
+  // if (status === "authenticated") {
+  return (
+    <div className="flex flex-1 flex-col">
+      <div className="@container/main flex flex-1 flex-col gap-2">
+        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+          <SectionCards />
+          {session && (
+            <div className="px-4 lg:px-6">
+              <ChartAreaInteractive />
             </div>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    );
-  }
+          )}
+          <DataTable data={data} />
+        </div>
+      </div>
+    </div>
+  );
+  // }
 }
