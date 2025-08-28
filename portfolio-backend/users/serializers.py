@@ -9,7 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'profile_image')
+        fields = ('id', "username", 'email', 'first_name', 'last_name', 'profile_image')
         read_only_fields = ('id', 'email')
     
     def get_profile_image(self, obj):
@@ -19,6 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
             return None
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.username', read_only=True)
     user_email = serializers.EmailField(source='user.email', read_only=True)
     user_first_name = serializers.CharField(source='user.first_name', read_only=True)
     user_last_name = serializers.CharField(source='user.last_name', read_only=True)

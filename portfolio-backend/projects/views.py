@@ -2,24 +2,28 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework import status
+from django.shortcuts import get_object_or_404
 from .models import Project
 from .serializers import ProjectSerializer
+from users.models import User
 
 class ProjectViewSet(viewsets.ModelViewSet):
+    queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']
 
     def get_queryset(self):
-        """
-        Return projects for authenticated users:
-        - Authenticated users see only their own projects
-        - Anonymous users see all projects (read-only)
-        """
         if self.request.user.is_authenticated:
             return Project.objects.filter(user=self.request.user)
-        return Project.objects.all()
-
+        else:
+            # Use specific user or default to user ID 2 if not found
+            try:
+                specific_user = User.objects.get(email="khalfan@khalfanathman.dev")
+                return Project.objects.filter(user=specific_user)
+            except User.DoesNotExist:
+                # Fallback to user ID 2 if specific user doesn't exist
+                return Project.objects.filter(user_id=2)
     def perform_create(self, serializer):
         """
         Automatically assign the current user to the project when creating

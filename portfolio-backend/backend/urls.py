@@ -9,13 +9,14 @@ from blog.views import BlogPostViewSet
 from contact.views import ContactMessageViewSet
 from django.conf import settings
 from django.conf.urls.static import static
+from certifications.views import CertificationViewSet
 
 router = routers.DefaultRouter()
 router.register(r'about', AboutViewSet)
 router.register(r'projects', ProjectViewSet)
 router.register(r'blog', BlogPostViewSet)
 router.register(r'contact', ContactMessageViewSet)
-
+router.register(r'certifications', CertificationViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
