@@ -133,7 +133,7 @@ export default function SocialPage() {
           Let&apos;s Connect
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-          Find me on these platforms. I'm always open to discussing new
+          Find me on these platforms. I&apos;m always open to discussing new
           projects, creative ideas, or opportunities to be part of your vision.
         </p>
       </div>

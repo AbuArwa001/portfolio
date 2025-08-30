@@ -102,7 +102,7 @@ export default function ContactPage() {
           Get In Touch
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-          Have a question or want to work together? I'd love to hear from you!
+          Have a question or want to work together? I&apos;d love to hear from you!
         </p>
       </div>
 
@@ -248,7 +248,7 @@ export default function ContactPage() {
                     Message Sent Successfully!
                   </h3>
                   <p className="text-muted-foreground mb-6">
-                    Thank you for your message. I'll get back to you as soon as possible.
+                    Thank you for your message. I&apos;ll get back to you as soon as possible.
                   </p>
                   <Button 
                     onClick={() => setIsSubmitted(false)}

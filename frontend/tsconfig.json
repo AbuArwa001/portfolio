@@ -33,7 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "../portfolio-backend/drf-adapter.ts"  ],
   "exclude": [
     "node_modules"
   ]
