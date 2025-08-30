@@ -1,9 +1,7 @@
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { ReactElement } from "react";
 
 export function UserButton(): ReactElement {
-  const { data: session } = useSession();
-
   const handleSignOut = (): void => {
     signOut().catch((error: Error) => {
       console.error("Sign out error:", error);

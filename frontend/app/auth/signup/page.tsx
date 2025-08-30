@@ -6,6 +6,7 @@ import Link from "next/link";
 
 export default function SignUp() {
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -31,6 +32,7 @@ export default function SignUp() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          username,
           email,
           password,
           password_confirm: passwordConfirm, // Match your Django serializer
@@ -50,11 +52,13 @@ export default function SignUp() {
         });
 
         // Redirect to dashboard
-        window.location.href = "/dashboard";
+        window.location.href = "/";
       } else {
         // Handle Django validation errors
         if (data.email) {
           setError(data.email[0]);
+        } else if (data.username) {
+          setError(data.username[0]);
         } else if (data.password) {
           setError(data.password[0]);
         } else if (data.non_field_errors) {
@@ -142,9 +146,27 @@ export default function SignUp() {
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Enter your email"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Username
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                required
+                value={username}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter your username"
               />
             </div>
 

@@ -1,0 +1,180 @@
+
+
+
+
+###
+
+POST  http://localhost:8000/api/auth/login/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "AbuArwa001",
+    "password": "Khalif01@2023"
+}
+
+###
+GET http://localhost:8000/api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NDg4NTc5LCJpYXQiOjE3NTY0ODQ5NzksImp0aSI6ImM5MGFlY2VlMjAwNDRkMWZhM2YwMzJhMmNkZDA5ZWVlIiwidXNlcl9pZCI6IjIifQ.-T_ZC4eUjplNnNpclHL9-tLpNx4A7GiTbJgoMmFHH9Q
+
+
+###
+GET http://localhost:8000/api/auth/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NDg4NTc5LCJpYXQiOjE3NTY0ODQ5NzksImp0aSI6ImM5MGFlY2VlMjAwNDRkMWZhM2YwMzJhMmNkZDA5ZWVlIiwidXNlcl9pZCI6IjIifQ.-T_ZC4eUjplNnNpclHL9-tLpNx4A7GiTbJgoMmFHH9Q
+###
+GET http://localhost:8000/api/auth/profile
+###
+# POST  http://localhost:8000/api/auth/profile/update/
+# Content-Type: application/json
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NDc1OTc4LCJpYXQiOjE3NTY0NzIzNzksImp0aSI6IjUzY2M5ZjM1OGY5MzRlOGZhMGY5NWY4MTkzOGFlYmUxIiwidXNlcl9pZCI6IjIifQ.PurMTY9YE24-W3efNUBb7Gltj0GmXwhGQ8YZO9LsHAs
+
+# {
+#     "username": "AbuArwa001"
+# }
+
+###
+POST  http://localhost:8000/api/auth/profile/update/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NTIxNzU5LCJpYXQiOjE3NTY1MTgxNTksImp0aSI6IjNkMGExZWE2Zjc3NTRmZDNiZmNkZGRmNmE5Y2Q3NGQxIiwidXNlcl9pZCI6IjIifQ.P1mO9hkmiHd28n8Eq1bGCzZkmqfwAJP1BHfNMemZaic
+
+    
+{
+    "phone": "+254719401851"
+}
+
+###
+POST http://localhost:8000/api/auth/profile/skills/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NDc1OTc4LCJpYXQiOjE3NTY0NzIzNzksImp0aSI6IjUzY2M5ZjM1OGY5MzRlOGZhMGY5NWY4MTkzOGFlYmUxIiwidXNlcl9pZCI6IjIifQ.PurMTY9YE24-W3efNUBb7Gltj0GmXwhGQ8YZO9LsHAs
+
+{
+    "category": "Programming Languages",
+    "skills": [
+        {"name": "C", "level": 85},
+        {"name": "Python", "level": 90},
+        {"name": "Bash", "level": 80},
+        {"name": "Java", "level": 50}
+    ]
+}
+
+
+###
+POST http://localhost:8000/api/auth/profile/bulk/skills/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NDg4NTc5LCJpYXQiOjE3NTY0ODQ5NzksImp0aSI6ImM5MGFlY2VlMjAwNDRkMWZhM2YwMzJhMmNkZDA5ZWVlIiwidXNlcl9pZCI6IjIifQ.-T_ZC4eUjplNnNpclHL9-tLpNx4A7GiTbJgoMmFHH9Q
+
+[
+    {
+        "category": "Programming Languages",
+        "skills": [
+            {"name": "C", "level": 85},
+            {"name": "Python", "level": 90},
+            {"name": "Bash", "level": 80},
+            {"name": "Java", "level": 50}
+        ]
+    },
+    {
+        "category": "Technologies & Tools",
+        "skills": [
+            {"name": "Linux", "level": 90},
+            {"name": "Networking", "level": 85},
+            {"name": "Git", "level": 80},
+            {"name": "Docker", "level": 70}
+        ]
+    },
+    {
+        "category": "Cloud & DevOps",
+        "skills": [
+            {"name": "AWS", "level": 75},
+            {"name": "OCI", "level": 80},
+            {"name": "CI/CD", "level": 70},
+            {"name": "Server Architecture", "level": 75}
+        ]
+    }
+]
+###
+
+POST http://localhost:8000/api/auth/profile/bulk/languages/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NDg4NTc5LCJpYXQiOjE3NTY0ODQ5NzksImp0aSI6ImM5MGFlY2VlMjAwNDRkMWZhM2YwMzJhMmNkZDA5ZWVlIiwidXNlcl9pZCI6IjIifQ.-T_ZC4eUjplNnNpclHL9-tLpNx4A7GiTbJgoMmFHH9Q
+
+[
+    {
+        "name": "English",
+        "proficiency": "Fluent"
+    },
+    {
+        "name": "Arabic",
+        "proficiency": "Proficient"
+    },
+    {
+        "name": "Swahili",
+        "proficiency": "Native"
+    }
+]
+
+###
+POST http://localhost:8000/api/auth/profile/bulk/certifications/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NDg4NTc5LCJpYXQiOjE3NTY0ODQ5NzksImp0aSI6ImM5MGFlY2VlMjAwNDRkMWZhM2YwMzJhMmNkZDA5ZWVlIiwidXNlcl9pZCI6IjIifQ.-T_ZC4eUjplNnNpclHL9-tLpNx4A7GiTbJgoMmFHH9Q
+
+[
+    {
+        "title": "AWS Cloud Practitioner",
+        "issuer": "Amazon",
+        "date": "2023",
+        "in_progress": false
+    },
+    {
+        "title": "Oracle Cloud Infrastructure (OCI) Associate",
+        "issuer": "Oracle",
+        "date": "2022",
+        "in_progress": false
+    },
+    {
+        "title": "AWS Solutions Architect",
+        "issuer": "Amazon",
+        "date": "2024",
+        "in_progress": true
+    },
+    {
+        "title": "Data Science",
+        "issuer": "Coursera",
+        "date": "2024",
+        "in_progress": true
+    }
+]
+###
+
+
+GET http://localhost:8000/api/auth/profile/skills/
+
+###
+GET http://localhost:8000/api/auth/profile/certifications/
+###
+POST  http://localhost:8000/api/auth/profile/certifications/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NTI5NDI0LCJpYXQiOjE3NTY1MjU4MjQsImp0aSI6ImMyMWUzOGQ3MmM4MjQzZjViYmY0ZGYyNGRmMDZhYmVlIiwidXNlcl9pZCI6IjIifQ.kU81rXgkKBwGc0t0uu71Nml0zlRIIWuXau3SJ8buikA
+
+{
+    "title": "Data Science",
+    "issuer": "Coursera",
+    "date": "2024",
+    "in_progress": true
+}
+###
+PATCH   http://localhost:8000/api/auth/profile/certifications/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NTI5NDI0LCJpYXQiOjE3NTY1MjU4MjQsImp0aSI6ImMyMWUzOGQ3MmM4MjQzZjViYmY0ZGYyNGRmMDZhYmVlIiwidXNlcl9pZCI6IjIifQ.kU81rXgkKBwGc0t0uu71Nml0zlRIIWuXau3SJ8buikA
+
+{
+    "badge": "https://www.credly.com/badges/61bbbf65-b730-4283-a29d-59d78ae2489c/public_url",
+    "date": "2025",
+    "type" : "aws"
+}
+
+###
+GET http://localhost:8000/api/auth/profile/languages/
+
+###
+GET http://localhost:8000/api/auth/profile/skill-categories/
+
+###

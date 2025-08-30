@@ -29,9 +29,11 @@ export default function SignIn() {
         setError("Invalid email or password");
       } else {
         // Redirect to dashboard or home page on successful login
-        router.push("/dashboard");
+        router.push("/");
       }
-    } catch (error) {
+
+    } catch (error) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      
       setError("An error occurred during sign in");
     } finally {
       setLoading(false);
@@ -66,15 +68,15 @@ export default function SignIn() {
                 Email address
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter your email"
+                placeholder="Enter your username"
               />
             </div>
 

@@ -7,6 +7,13 @@ declare module "next-auth" {
     accessToken?: string;
     refreshToken?: string;
   }
+  interface User {
+    id?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    email?: string;
+    name?: string;
+  }
 }
 
 declare module "next-auth/jwt" {

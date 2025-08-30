@@ -22,7 +22,7 @@ const authOptions: AuthOptions = {
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "username", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
@@ -72,6 +72,7 @@ const authOptions: AuthOptions = {
 
           const userData = await userResponse.json();
 
+          // Explicitly type the returned user object to include custom fields
           return {
             id: userData.id.toString(),
             email: userData.email,
@@ -80,6 +81,12 @@ const authOptions: AuthOptions = {
             }`.trim(),
             accessToken: tokenData.access,
             refreshToken: tokenData.refresh,
+          } as {
+            id: string;
+            email: string;
+            name: string;
+            accessToken: string;
+            refreshToken: string;
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -94,9 +101,14 @@ const authOptions: AuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.accessToken = user.accessToken;
-        token.refreshToken = user.refreshToken;
+        const customUser = user as typeof user & {
+          id?: string;
+          accessToken?: string;
+          refreshToken?: string;
+        };
+        token.id = customUser.id;
+        token.accessToken = customUser.accessToken;
+        token.refreshToken = customUser.refreshToken;
       }
       return token;
     },

@@ -1,0 +1,102 @@
+import { SearchableItem } from "@/hooks/use-search";
+export const searchData: SearchableItem[] = [
+  {
+    id: "home",
+    title: "Home",
+    description: "Welcome to my portfolio",
+    url: "/",
+    type: "page",
+  },
+  {
+    id: "profile",
+    title: "Profile",
+    description: "Learn about my background and skills",
+    url: "/profile",
+    type: "page",
+  },
+  {
+    id: "projects",
+    title: "Projects",
+    description: "View my completed and ongoing projects",
+    url: "/projects",
+    type: "page",
+  },
+  {
+    id: "skills",
+    title: "Skills & Technologies",
+    description: "See my technical skills and proficiency levels",
+    url: "/skills",
+    type: "page",
+  },
+  {
+    id: "activity",
+    title: "Activity Feed",
+    description: "My GitHub activity and contributions",
+    url: "/activity",
+    type: "page",
+  },
+  {
+    id: "resume",
+    title: "Resume",
+    description: "Download or view my professional resume",
+    url: "/resume",
+    type: "page",
+  },
+  {
+    id: "contact",
+    title: "Contact",
+    description: "Get in touch with me",
+    url: "/contact",
+    type: "page",
+  },
+  {
+    id: "social",
+    title: "Socials",
+    description: "Connect with me on social media",
+    url: "/social",
+    type: "page",
+  },
+  // Add your projects
+  {
+    id: "funding-manager",
+    title: "Funding Manager System",
+    description: "System to help groups manage contributions and loans",
+    url: "/projects#funding-manager",
+    type: "project",
+    tags: ["Flask", "MySQL", "Finance"],
+  },
+  {
+    id: "itikaf-system",
+    title: "I'tikaf Registration System",
+    description: "Online platform for I'tikaf registration",
+    url: "/projects#itikaf-system",
+    type: "project",
+    tags: ["React", "Next.js", "MySQL"],
+  },
+  {
+    id: "voting-system",
+    title: "Voting System API",
+    description: "Backend for creating polls and voting",
+    url: "/projects#voting-system",
+    type: "project",
+    tags: ["Django", "PostgreSQL", "API"],
+  },
+  // Add skills
+  {
+    id: "react",
+    title: "React",
+    description: "Frontend JavaScript library",
+    url: "/skills",
+    type: "skill",
+    tags: ["Frontend", "JavaScript"],
+  },
+  {
+    id: "python",
+    title: "Python",
+    description: "Programming language",
+    url: "/skills",
+    type: "skill",
+    tags: ["Backend", "Data Science"],
+  },
+  // Add more items as needed
+];

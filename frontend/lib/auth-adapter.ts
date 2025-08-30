@@ -86,7 +86,7 @@ export class DRFAdapter implements Adapter {
       email: drfUser.email,
       emailVerified: null,
       name:
-        `${drfUser.first_name || ""} ${drfUser.last_name || ""}`.trim() || null,
+        `${drfUser.first_name || ""} ${drfUser.last_name || ""}`.trim() || undefined,
       image: null,
     };
   }
@@ -100,7 +100,7 @@ export class DRFAdapter implements Adapter {
         emailVerified: null,
         name:
           `${drfUser.first_name || ""} ${drfUser.last_name || ""}`.trim() ||
-          null,
+          undefined,
         image: null,
       };
     } catch {
@@ -126,7 +126,7 @@ export class DRFAdapter implements Adapter {
         emailVerified: null,
         name:
           `${drfUser.first_name || ""} ${drfUser.last_name || ""}`.trim() ||
-          null,
+          undefined,
         image: null,
       };
     } catch {
@@ -164,9 +164,9 @@ export class DRFAdapter implements Adapter {
     return { ...existingUser, ...user };
   }
 
-  async deleteUser(userId: string): Promise<void> {
-    // Implement if needed
-  }
+  // async deleteUser(userId: string): Promise<void> {
+  //   // Implement if needed
+  // }
 
   //   async linkAccount(account: any): Promise<void> {
   //     await this.fetchDRF("/auth/accounts/", {
@@ -195,7 +195,8 @@ export class DRFAdapter implements Adapter {
     return session;
   }
 
-  async getSessionAndUser(sessionToken: string): Promise<{
+  
+  async getSessionAndUser(sessionToken: string): Promise<{// eslint-disable-line @typescript-eslint/no-unused-vars
     session: AdapterSession;
     user: AdapterUser;
   } | null> {
@@ -203,12 +204,12 @@ export class DRFAdapter implements Adapter {
   }
 
   async updateSession(
-    session: Partial<AdapterSession> & Pick<AdapterSession, "sessionToken">
+    session: Partial<AdapterSession> & Pick<AdapterSession, "sessionToken"> // eslint-disable-line @typescript-eslint/no-unused-vars
   ): Promise<AdapterSession | null> {
     return null;
   }
 
-  async deleteSession(sessionToken: string): Promise<void> {
+  async deleteSession(sessionToken: string): Promise<void> {// eslint-disable-line @typescript-eslint/no-unused-vars
     // Implement if needed
   }
 
@@ -218,7 +219,7 @@ export class DRFAdapter implements Adapter {
     return verificationToken;
   }
 
-  async useVerificationToken(params: {
+  async useVerificationToken(params: {// eslint-disable-line @typescript-eslint/no-unused-vars
     identifier: string;
     token: string;
   }): Promise<VerificationToken | null> {

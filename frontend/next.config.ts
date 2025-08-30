@@ -1,16 +1,43 @@
-import type { NextConfig } from "next";
-const nextConfig: NextConfig = {
-  // Remove Clerk-specific external packages since we're using Auth.js
-  // serverComponentsExternalPackages has been moved to serverExternalPackages
-  serverExternalPackages: [],
+// next.config.js
+const nextConfig = {
   images: {
-    domains: ["localhost"], // Remove Clerk domain, add your own if needed
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "github-readme-stats.vercel.app",
+      },
+      {
+        protocol: "https",
+        hostname: "github-readme-streak-stats.herokuapp.com",
+      },
+      {
+        protocol: "https",
+        hostname: "github-profile-trophy.vercel.app",
+      },
+      {
+        protocol: "https",
+        hostname: "github-profile-summary-cards.vercel.app",
+      },
+      {
+        protocol: "https",
+        hostname: "raw.githubusercontent.com",
+      },
+    ],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  // Add this to fix the workspace root warning
   outputFileTracingRoot: __dirname,
 };
 
-export default nextConfig;
+module.exports = nextConfig;
 
 // import type { NextConfig } from "next";
 

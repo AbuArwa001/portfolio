@@ -1,28 +1,29 @@
 "use client";
-
+import { SearchButton } from "@/components/search-button";
 import * as React from "react";
+import { searchData } from "@/data";
 import {
-  IconCamera,
-  IconChartBar,
-  IconDashboard,
-  IconDatabase,
-  IconFileAi,
+  IconActivity,
+  IconBriefcase,
+  IconCertificate,
   IconFileDescription,
-  IconFileWord,
-  IconFolder,
-  IconHelp,
   IconInnerShadowTop,
   IconListDetails,
+  IconMail,
   IconReport,
   IconSearch,
   IconSettings,
+  IconUser,
   IconUsers,
+  IconLogin,
+  IconLogout,
+  IconMoon,
+  IconSun,
 } from "@tabler/icons-react";
 
 import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
-import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -32,141 +33,149 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+
+// Mock authentication state - replace with your actual auth logic
+const useAuth = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // In a real app, you would check for an auth token or session
+  useEffect(() => {
+    // Check if user is logged in (this is just a mock)
+    const token = localStorage.getItem("authToken");
+    setIsLoggedIn(!!token);
+    setIsLoading(false);
+  }, []);
+
+  const login = () => {
+    localStorage.setItem("authToken", "mock-token");
+    setIsLoggedIn(true);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("authToken");
+    setIsLoggedIn(false);
+  };
+
+  return { isLoggedIn, isLoading, login, logout };
+};
 
 const data = {
-  user: {
-    name: "Khalfan Athman",
-    email: "khalfan@khalfanathman.dev",
-    avatar: "/avatars/148.jpg",
-  },
   navMain: [
-    // {
-    //   title: "Dashboard",
-    //   url: "#",
-    //   icon: IconDashboard,
-    // },
     {
       title: "Overview",
       url: "/",
-      icon: IconDashboard,
+      icon: IconActivity,
+      description: "Dashboard and main metrics",
     },
     {
       title: "Profile",
       url: "/profile",
-      icon: IconFolder,
+      icon: IconUser,
+      description: "Personal information and bio",
     },
     {
       title: "Projects",
       url: "/projects",
-      icon: IconFolder,
+      icon: IconBriefcase,
+      description: "Portfolio and work samples",
     },
     {
       title: "Skills & Tech",
       url: "/skills",
       icon: IconListDetails,
+      description: "Technical skills and expertise",
     },
-    // {
-    //   title: "Lifecycle",
-    //   url: "#",
-    //   icon: IconListDetails,
-    // },
     {
       title: "Activity Feed",
       url: "/activity",
       icon: IconUsers,
+      description: "GitHub activity and contributions",
     },
     {
-      title: "Contact Details",
-      url: "#",
-      icon: IconChartBar,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
+      title: "Resume",
+      url: "/resume",
       icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
+      description: "Professional resume and experience",
     },
     {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
+      title: "Contact",
+      url: "/contact",
+      icon: IconMail,
+      description: "Get in touch with me",
+    },
+    {
+      title: "Socials",
+      url: "/socials",
+      icon: IconUsers,
+      description: "Social media profiles",
     },
   ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
+  // Only show settings if logged in
+  navSecondary: (isLoggedIn: boolean) => [
+    ...(isLoggedIn
+      ? [
+          {
+            title: "Settings",
+            url: "/settings",
+            icon: IconSettings,
+            description: "Account preferences and configuration",
+          },
+        ]
+      : []),
     {
       title: "Search",
       url: "#",
       icon: IconSearch,
+      component: <SearchButton searchData={searchData} />,
+      description: "Search across the site",
     },
   ],
-  documents: [
+  // Documents that should only be visible when logged in
+  documents: (isLoggedIn: boolean) => [
     {
-      name: "Resume",
-      url: "#",
+      name: "Resume Download",
+      url: "/Khalfan_Athman_MSA_PDF.pdf",
       icon: IconReport,
+      description: "Download my latest resume",
     },
-    {
-      name: "Contact Download",
-      url: "#",
-      icon: IconDatabase,
-    },
-
-    // {
-    //   name: "Word Assistant",
-    //   url: "#",
-    //   icon: IconFileWord,
-    // },
+    // Only show certificates if logged in
+    ...(isLoggedIn
+      ? [
+          {
+            name: "Certificates",
+            url: "/certificates",
+            icon: IconCertificate,
+            description: "View my certifications and achievements",
+          },
+        ]
+      : []),
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { isLoggedIn, isLoading, login, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-16 items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -174,11 +183,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="data-[slot=sidebar-menu-button]:!p-1.5 group"
             >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Khalfan Athman</span>
+              <a href="#" className="flex items-center gap-2">
+                <div className="relative">
+                  <IconInnerShadowTop className="!size-5 transition-transform group-hover:scale-110" />
+                  <div className="absolute -inset-1 bg-primary/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+                <span className="text-base font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                  Khalfan Athman
+                </span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -186,11 +200,55 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavDocuments items={data.documents(isLoggedIn)} />
+        
+        {/* Theme Toggle */}
+        <div className="px-4 py-2">
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-3 w-full p-2 rounded-lg text-sm transition-all duration-200 hover:bg-accent hover:text-accent-foreground"
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {mounted ? (
+              theme === "dark" ? (
+                <IconSun className="h-4 w-4" />
+              ) : (
+                <IconMoon className="h-4 w-4" />
+              )
+            ) : (
+              <div className="h-4 w-4 bg-muted rounded"></div>
+            )}
+            <span>{mounted ? (theme === "dark" ? "Light Mode" : "Dark Mode") : "Loading..."}</span>
+          </button>
+        </div>
+
+        {/* Auth Toggle */}
+        <div className="px-4 py-2">
+          <button
+            onClick={isLoggedIn ? logout : login}
+            className="flex items-center gap-3 w-full p-2 rounded-lg text-sm transition-all duration-200 hover:bg-accent hover:text-accent-foreground"
+          >
+            {isLoggedIn ? (
+              <IconLogout className="h-4 w-4" />
+            ) : (
+              <IconLogin className="h-4 w-4" />
+            )}
+            <span>{isLoggedIn ? "Sign Out" : "Sign In"}</span>
+          </button>
+        </div>
+
+        <NavSecondary
+          items={data.navSecondary(isLoggedIn)}
+          className="mt-auto"
+        />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {isLoggedIn && (
+          <div className="px-4 py-2 text-xs text-muted-foreground text-center">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse inline-block mr-2"></div>
+            Online
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   );

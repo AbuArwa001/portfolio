@@ -24,8 +24,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Sign } from "crypto";
-import Link from "next/link";
 import { UserButton } from "./sign-out";
 
 export function NavUser({

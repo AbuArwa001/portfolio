@@ -29,7 +29,7 @@ SECRET_KEY = "django-insecure-rq_)-=g_%8s18br-@h%koxc^dr^mt0muk^ml)lu!gz+-x=(1mz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 CORS_ALLOW_ALL_ORIGINS = True
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*", "https://portfolio-3ke7.onrender.com"]
 
 
 # Application definition
@@ -160,6 +160,7 @@ REST_FRAMEWORK = {
 AUTH_USER_MODEL = 'users.User'
 # CORS Settings (for frontend communication)
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000", 
+    "https://khalfanathman.dev",
+    "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]

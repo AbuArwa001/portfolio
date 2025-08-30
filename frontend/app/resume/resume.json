@@ -1,0 +1,60 @@
+{
+  "profile": {
+    "name": "Khalfan Athman",
+    "role": "Backend Engineer ⚡",
+    "avatar": "https://avatars.githubusercontent.com/u/9919?s=200&v=4"
+  },
+  "contact": {
+    "email": "khalfan@khalfanathman.dev",
+    "linkedin": "https://linkedin.com/in/khalfaniathman",
+    "github": "https://github.com/AbuArwa001"
+  },
+  "experience": [
+    {
+      "title": "Assistant IT Manager (Network Engineer)",
+      "company": "Jamia Mosque Committee",
+      "period": "Jan 2022 – Present",
+      "location": "Nairobi, Kenya",
+      "achievements": [
+        "Configured and secured enterprise-level networks",
+        "Automated tasks with Python/Bash",
+        "Led firewall and network security assessments"
+      ]
+    },
+    {
+      "title": "ICT Officer",
+      "company": "State Department for Livestock",
+      "period": "Jan 2020 – Jul 2022",
+      "location": "Nairobi, Kenya",
+      "achievements": [
+        "Supported users and optimized performance",
+        "Installed and managed network equipment"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "ALX Africa",
+      "degree": "Certificate in Software Engineering",
+      "period": "2024"
+    },
+    {
+      "school": "International University of Africa",
+      "degree": "BSc in Computer Science",
+      "period": "2018"
+    }
+  ],
+  "skills": ["C", "Python", "Linux", "Networking", "Git/GitHub", "Jenkins"],
+  "certifications": [
+    {
+      "name": "Oracle Cloud Infrastructure Associate",
+      "issuer": "Oracle",
+      "year": 2022
+    },
+    {
+      "name": "AWS Cloud Practitioner",
+      "issuer": "Amazon Web Services",
+      "year": 2023
+    }
+  ]
+}
