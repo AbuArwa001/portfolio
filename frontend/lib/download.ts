@@ -13,6 +13,6 @@ export const downloadFile = (url: string, filename: string) => {
 
 export const downloadResume = () => {
   // Path to your resume file in the public folder
-  const resumeUrl = "/resume/Khalfan_Athman_Resume.pdf";
+  const resumeUrl = "/Khalfan_Athman_Resume.pdf";
   downloadFile(resumeUrl, "Khalfan_Athman_Resume.pdf");
 };

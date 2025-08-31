@@ -105,7 +105,7 @@ const data = {
   documents: (isLoggedIn: boolean) => [
     {
       name: "Resume Download",
-      url: "/Khalfan_Athman_MSA_PDF.pdf",
+      url: "/Khalfan_Athman_Resume.pdf",
       icon: IconReport,
       description: "Download my latest resume",
     },
