@@ -134,7 +134,7 @@ export default function Page() {
             Developer Dashboard
           </h1>
           <p className="text-slate-600 dark:text-slate-300">
-            Welcome back! Here&apos;s an overview of your projects and progress.
+            Welcome back! Here&apos;s an overview of Khalfan Athman projects and progress.
           </p>
         </motion.div>
 
@@ -270,7 +270,7 @@ export default function Page() {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <Card className="border-0 shadow-lg">
-              <CardHeader className="bg-slate-50 dark:bg-slate-800/50 rounded-t-lg">
+              <CardHeader className=" dark:bg-slate-800/50 rounded-t-lg">
                 <CardTitle className="flex items-center">
                   <svg
                     className="mr-2 h-5 w-5"
@@ -294,7 +294,7 @@ export default function Page() {
                   GitHub Contributions
                 </CardTitle>
                 <CardDescription>
-                  Your coding activity and contributions over the past year
+                  Coding activity and contributions over the past year
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-6">
@@ -445,13 +445,13 @@ export default function Page() {
           className="mt-6"
         >
           <Card className="border-0 shadow-lg">
-            <CardHeader className="bg-slate-50 dark:极-slate-800/50 rounded-t-lg">
+            <CardHeader className="dark:极-slate-800/50 rounded-t-lg">
               <CardTitle className="flex items-center">
                 <Monitor className="mr-2 h-5 w-5" />
                 Recent Projects
               </CardTitle>
               <CardDescription>
-                Your most recent development projects
+                Most recent development projects
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
@@ -474,7 +474,7 @@ export default function Page() {
                 Certifications & Achievements
               </CardTitle>
               <CardDescription>
-                Your professional certifications and completed courses
+                professional certifications and completed courses
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">

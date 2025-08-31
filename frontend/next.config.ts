@@ -8,6 +8,18 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "portfolio-nq7u72ays-khalfanathman12s-projects.vercel.app",
+      },
+      {
+        protocol: "https",
+        hostname: "portfolio-3ke7.onrender.com",
+      },
+      {
+        protocol: "https",
+        hostname: "www.khalfanathman.dev/",
+      },
+      {
+        protocol: "https",
         hostname: "avatars.githubusercontent.com",
       },
       {

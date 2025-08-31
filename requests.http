@@ -1,5 +1,66 @@
 
+#### public urls
+###
 
+POST  https://portfolio-3ke7.onrender.com/api/auth/register/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "AbuArwa001",
+    "email": "khalfan@khalfaniathman.dev",
+    "first_name": "Khalfan",
+    "last_name": "Athman",
+    "password": "Khalif01@2023",
+    "password_confirm": "Khalif01@2023"
+}
+
+
+###
+
+POST  https://portfolio-3ke7.onrender.com/api/auth/login/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "AbuArwa001",
+    "password": "Khalif01@2023"
+}
+
+
+###
+GET https://portfolio-3ke7.onrender.com/api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NjI4MDkxLCJpYXQiOjE3NTY2MjQ0OTIsImp0aSI6ImYxNDA4OTA0MjRhMzQ5N2M4OTBmMTIyYjQ3MjVmYjc4IiwidXNlcl9pZCI6IjMifQ.NRx4jalZ_cPkUTWXz4I3NfrI21K4MZxJkA0UcB5pDwg
+
+
+###
+GET https://portfolio-3ke7.onrender.com/api/auth/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NjI4MDkxLCJpYXQiOjE3NTY2MjQ0OTIsImp0aSI6ImYxNDA4OTA0MjRhMzQ5N2M4OTBmMTIyYjQ3MjVmYjc4IiwidXNlcl9pZCI6IjMifQ.NRx4jalZ_cPkUTWXz4I3NfrI21K4MZxJkA0UcB5pDwg
+
+
+
+###
+POST https://portfolio-3ke7.onrender.com/api/auth/profile/update/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NjI4MDkxLCJpYXQiOjE3NTY2MjQ0OTIsImp0aSI6ImYxNDA4OTA0MjRhMzQ5N2M4OTBmMTIyYjQ3MjVmYjc4IiwidXNlcl9pZCI6IjMifQ.NRx4jalZ_cPkUTWXz4I3NfrI21K4MZxJkA0UcB5pDwg
+
+{
+  "username": "AbuArwa001",
+  "email": "khalfan@khalfanathman.dev",
+  "first_name": "Khalfani",
+  "last_name": "Khalfan",
+  "bio": "A highly skilled Software Engineer (Backend Specialization) and Network Engineer with 4+ years of experience in IT infrastructure and full-stack development. Certified in AWS Cloud Practitioner and pursuing AWS Solutions Architect and Data Science, with expertise in Python, C and Linux systems. Passionate about building scalable solutions, optimizing systems, and contributing to open-source projects.",
+  "title": "Software Engineer (Backend Specialization) & Network Engineer",
+  "location": "Home-based, Nairobi, Kenya",
+  "phone": "+254719401851",
+  "website": "https://www.khalfanathman.dev",
+  "github": "https://github.com/AbuArwa001",
+  "linkedin": "https://www.linkedin.com/in/khalfaniathman",
+  "twitter": "https://x.com/athman_khalfan"
+
+}
+###
+
+
+#### local hosts
 
 
 ###
@@ -14,8 +75,7 @@ Content-Type: application/json
 
 ###
 GET http://localhost:8000/api/auth/me
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NDg4NTc5LCJpYXQiOjE3NTY0ODQ5NzksImp0aSI6ImM5MGFlY2VlMjAwNDRkMWZhM2YwMzJhMmNkZDA5ZWVlIiwidXNlcl9pZCI6IjIifQ.-T_ZC4eUjplNnNpclHL9-tLpNx4A7GiTbJgoMmFHH9Q
-
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NjM0Mzk3LCJpYXQiOjE3NTY2MzA3OTcsImp0aSI6ImE2ZWJjMDBiZDk5ZTQ0NDRiMjY0NzU2OTViNDBmMmE2IiwidXNlcl9pZCI6IjIifQ.4qV-vnjHA6waQiOLAj_AUdq7S8lxmWi7yJIh5jXuX2U
 
 ###
 GET http://localhost:8000/api/auth/profile
@@ -115,33 +175,35 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ###
 POST http://localhost:8000/api/auth/profile/bulk/certifications/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NDg4NTc5LCJpYXQiOjE3NTY0ODQ5NzksImp0aSI6ImM5MGFlY2VlMjAwNDRkMWZhM2YwMzJhMmNkZDA5ZWVlIiwidXNlcl9pZCI6IjIifQ.-T_ZC4eUjplNnNpclHL9-tLpNx4A7GiTbJgoMmFHH9Q
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NjM0Mzk3LCJpYXQiOjE3NTY2MzA3OTcsImp0aSI6ImE2ZWJjMDBiZDk5ZTQ0NDRiMjY0NzU2OTViNDBmMmE2IiwidXNlcl9pZCI6IjIifQ.4qV-vnjHA6waQiOLAj_AUdq7S8lxmWi7yJIh5jXuX2U
 
 [
     {
+        "title": "Data Science",
+        "issuer": "Coursera",
+        "date": "2026",
+        "in_progress": true
+    },
+
+    {
         "title": "AWS Cloud Practitioner",
         "issuer": "Amazon",
-        "date": "2023",
-        "in_progress": false
-    },
-    {
-        "title": "Oracle Cloud Infrastructure (OCI) Associate",
-        "issuer": "Oracle",
-        "date": "2022",
+        "date": "2025",
         "in_progress": false
     },
     {
         "title": "AWS Solutions Architect",
         "issuer": "Amazon",
-        "date": "2024",
+        "date": "2025",
         "in_progress": true
     },
-    {
-        "title": "Data Science",
+
+        {
+        "title": "Introduction To Relational Databases",
         "issuer": "Coursera",
-        "date": "2024",
-        "in_progress": true
-    }
+        "date": "2020",
+        "in_progress": false
+    },
 ]
 ###
 

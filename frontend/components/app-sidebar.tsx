@@ -14,7 +14,6 @@ import {
   IconSearch,
   IconSettings,
   IconUser,
-  IconUsers,
   IconLogin,
   IconLogout,
   IconMoon,
@@ -40,26 +39,34 @@ import { useEffect, useState } from "react";
 const useAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPortfolioOwner, setIsPortfolioOwner] = useState(false);
 
   // In a real app, you would check for an auth token or session
   useEffect(() => {
-    // Check if user is logged in (this is just a mock)
+    // Check if user is logged in and if they are the portfolio owner
     const token = localStorage.getItem("authToken");
+    const userRole = localStorage.getItem("userRole"); // Assuming you store user role
+    
     setIsLoggedIn(!!token);
+    setIsPortfolioOwner(userRole === "owner"); // Adjust this based on your auth logic
     setIsLoading(false);
   }, []);
 
   const login = () => {
     localStorage.setItem("authToken", "mock-token");
+    localStorage.setItem("userRole", "owner"); // For demo purposes, set as owner
     setIsLoggedIn(true);
+    setIsPortfolioOwner(true);
   };
 
   const logout = () => {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("userRole");
     setIsLoggedIn(false);
+    setIsPortfolioOwner(false);
   };
 
-  return { isLoggedIn, isLoading, login, logout };
+  return { isLoggedIn, isPortfolioOwner, isLoading, login, logout };
 };
 
 const data = {
@@ -89,12 +96,6 @@ const data = {
       description: "Technical skills and expertise",
     },
     {
-      title: "Activity Feed",
-      url: "/activity",
-      icon: IconUsers,
-      description: "GitHub activity and contributions",
-    },
-    {
       title: "Resume",
       url: "/resume",
       icon: IconFileDescription,
@@ -106,16 +107,10 @@ const data = {
       icon: IconMail,
       description: "Get in touch with me",
     },
-    {
-      title: "Socials",
-      url: "/socials",
-      icon: IconUsers,
-      description: "Social media profiles",
-    },
   ],
-  // Only show settings if logged in
-  navSecondary: (isLoggedIn: boolean) => [
-    ...(isLoggedIn
+  // Only show settings if logged in AND is portfolio owner
+  navSecondary: (isLoggedIn: boolean, isPortfolioOwner: boolean) => [
+    ...(isLoggedIn && isPortfolioOwner
       ? [
           {
             title: "Settings",
@@ -133,16 +128,16 @@ const data = {
       description: "Search across the site",
     },
   ],
-  // Documents that should only be visible when logged in
-  documents: (isLoggedIn: boolean) => [
+  // Documents that should only be visible when logged in AND is portfolio owner
+  documents: (isLoggedIn: boolean, isPortfolioOwner: boolean) => [
     {
       name: "Resume Download",
       url: "/Khalfan_Athman_MSA_PDF.pdf",
       icon: IconReport,
       description: "Download my latest resume",
     },
-    // Only show certificates if logged in
-    ...(isLoggedIn
+    // Only show certificates if logged in AND is portfolio owner
+    ...(isLoggedIn && isPortfolioOwner
       ? [
           {
             name: "Certificates",
@@ -156,7 +151,7 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { isLoggedIn, isLoading, login, logout } = useAuth();
+  const { isLoggedIn, isPortfolioOwner, isLoading, login, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -200,7 +195,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents(isLoggedIn)} />
+        <NavDocuments items={data.documents(isLoggedIn, isPortfolioOwner)} />
         
         {/* Theme Toggle */}
         <div className="px-4 py-2">
@@ -222,28 +217,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </button>
         </div>
 
-        {/* Auth Toggle */}
-        <div className="px-4 py-2">
-          <button
-            onClick={isLoggedIn ? logout : login}
-            className="flex items-center gap-3 w-full p-2 rounded-lg text-sm transition-all duration-200 hover:bg-accent hover:text-accent-foreground"
-          >
-            {isLoggedIn ? (
-              <IconLogout className="h-4 w-4" />
-            ) : (
-              <IconLogin className="h-4 w-4" />
-            )}
-            <span>{isLoggedIn ? "Sign Out" : "Sign In"}</span>
-          </button>
-        </div>
+        {/* Auth Toggle - Only show if portfolio owner */}
+        {isPortfolioOwner && (
+          <div className="px-4 py-2">
+            <button
+              onClick={isLoggedIn ? logout : login}
+              className="flex items-center gap-3 w-full p-2 rounded-lg text-sm transition-all duration-200 hover:bg-accent hover:text-accent-foreground"
+            >
+              {isLoggedIn ? (
+                <IconLogout className="h-4 w-4" />
+              ) : (
+                <IconLogin className="h-4 w-4" />
+              )}
+              <span>{isLoggedIn ? "Sign Out" : "Sign In"}</span>
+            </button>
+          </div>
+        )}
 
         <NavSecondary
-          items={data.navSecondary(isLoggedIn)}
+          items={data.navSecondary(isLoggedIn, isPortfolioOwner)}
           className="mt-auto"
         />
       </SidebarContent>
       <SidebarFooter>
-        {isLoggedIn && (
+        {isLoggedIn && isPortfolioOwner && (
           <div className="px-4 py-2 text-xs text-muted-foreground text-center">
             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse inline-block mr-2"></div>
             Online
