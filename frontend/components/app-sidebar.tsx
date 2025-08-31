@@ -56,7 +56,6 @@ const useAuth = () => {
   return { isLoggedIn, isLoading, login, logout };
 };
 
-
 const data = {
   navMain: [
     {
@@ -92,6 +91,12 @@ const data = {
     {
       title: "Contact",
       url: "/contact",
+      icon: IconMail,
+      description: "Get in touch with me",
+    },
+    {
+      title: "Socials",
+      url: "/socials",
       icon: IconMail,
       description: "Get in touch with me",
     },
@@ -138,7 +143,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const handleInbox = () => {
     // Redirect to messages/contact management
-    window.location.href = '/admin/messages';
+    window.location.href = "/admin/messages";
   };
 
   if (isLoading) {
@@ -173,17 +178,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
-          <NavMain 
-            items={data.navMain}
-          />
+          <NavMain items={data.navMain} />
           <NavDocuments items={data.documents(isLoggedIn)} />
-          
+
           {/* Theme Toggle */}
           <div className="px-4 py-2">
             <button
               onClick={toggleTheme}
               className="flex items-center gap-3 w-full p-2 rounded-lg text-sm transition-all duration-200 hover:bg-accent hover:text-accent-foreground"
-              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
               {mounted ? (
                 theme === "dark" ? (
@@ -194,12 +197,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               ) : (
                 <div className="h-4 w-4 bg-muted rounded"></div>
               )}
-              <span>{mounted ? (theme === "dark" ? "Light Mode" : "Dark Mode") : "Loading..."}</span>
+              <span>
+                {mounted
+                  ? theme === "dark"
+                    ? "Light Mode"
+                    : "Dark Mode"
+                  : "Loading..."}
+              </span>
             </button>
           </div>
 
           {/* Auth Toggle - Only show if portfolio owner */}
-
         </SidebarContent>
         <SidebarFooter>
           {isLoggedIn && (
@@ -212,9 +220,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </Sidebar>
 
       {/* Quick Create Modal */}
-      <QuickCreateModal 
-        isOpen={showCreateModal} 
-        onClose={() => setShowCreateModal(false)} 
+      <QuickCreateModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
       />
     </>
   );
