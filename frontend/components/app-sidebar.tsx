@@ -14,15 +14,12 @@ import {
   IconSearch,
   IconSettings,
   IconUser,
-  IconLogin,
-  IconLogout,
   IconMoon,
   IconSun,
 } from "@tabler/icons-react";
 
 import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
-import { NavSecondary } from "@/components/nav-secondary";
 import {
   Sidebar,
   SidebarContent,
@@ -34,40 +31,31 @@ import {
 } from "@/components/ui/sidebar";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { QuickCreateModal } from "@/components/quick-create-modal"; // Import the new modal
 
-// Mock authentication state - replace with your actual auth logic
 const useAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPortfolioOwner, setIsPortfolioOwner] = useState(false);
 
-  // In a real app, you would check for an auth token or session
   useEffect(() => {
-    // Check if user is logged in and if they are the portfolio owner
     const token = localStorage.getItem("authToken");
-    const userRole = localStorage.getItem("userRole"); // Assuming you store user role
-    
     setIsLoggedIn(!!token);
-    setIsPortfolioOwner(userRole === "owner"); // Adjust this based on your auth logic
     setIsLoading(false);
   }, []);
 
   const login = () => {
     localStorage.setItem("authToken", "mock-token");
-    localStorage.setItem("userRole", "owner"); // For demo purposes, set as owner
     setIsLoggedIn(true);
-    setIsPortfolioOwner(true);
   };
 
   const logout = () => {
     localStorage.removeItem("authToken");
-    localStorage.removeItem("userRole");
     setIsLoggedIn(false);
-    setIsPortfolioOwner(false);
   };
 
-  return { isLoggedIn, isPortfolioOwner, isLoading, login, logout };
+  return { isLoggedIn, isLoading, login, logout };
 };
+
 
 const data = {
   navMain: [
@@ -108,36 +96,16 @@ const data = {
       description: "Get in touch with me",
     },
   ],
-  // Only show settings if logged in AND is portfolio owner
-  navSecondary: (isLoggedIn: boolean, isPortfolioOwner: boolean) => [
-    ...(isLoggedIn && isPortfolioOwner
-      ? [
-          {
-            title: "Settings",
-            url: "/settings",
-            icon: IconSettings,
-            description: "Account preferences and configuration",
-          },
-        ]
-      : []),
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-      component: <SearchButton searchData={searchData} />,
-      description: "Search across the site",
-    },
-  ],
-  // Documents that should only be visible when logged in AND is portfolio owner
-  documents: (isLoggedIn: boolean, isPortfolioOwner: boolean) => [
+  // Documents that should only be visible when logged in
+  documents: (isLoggedIn: boolean) => [
     {
       name: "Resume Download",
       url: "/Khalfan_Athman_MSA_PDF.pdf",
       icon: IconReport,
       description: "Download my latest resume",
     },
-    // Only show certificates if logged in AND is portfolio owner
-    ...(isLoggedIn && isPortfolioOwner
+    // Only show certificates if logged in
+    ...(isLoggedIn
       ? [
           {
             name: "Certificates",
@@ -151,9 +119,10 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { isLoggedIn, isPortfolioOwner, isLoading, login, logout } = useAuth();
+  const { isLoggedIn, isLoading } = useAuth();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -161,6 +130,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
+  };
+
+  const handleQuickCreate = () => {
+    setShowCreateModal(true);
+  };
+
+  const handleInbox = () => {
+    // Redirect to messages/contact management
+    window.location.href = '/admin/messages';
   };
 
   if (isLoading) {
@@ -172,81 +150,72 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5 group"
-            >
-              <a href="#" className="flex items-center gap-2">
-                <div className="relative">
-                  <IconInnerShadowTop className="!size-5 transition-transform group-hover:scale-110" />
-                  <div className="absolute -inset-1 bg-primary/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                </div>
-                <span className="text-base font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                  Khalfan Athman
-                </span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents(isLoggedIn, isPortfolioOwner)} />
-        
-        {/* Theme Toggle */}
-        <div className="px-4 py-2">
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-3 w-full p-2 rounded-lg text-sm transition-all duration-200 hover:bg-accent hover:text-accent-foreground"
-            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-          >
-            {mounted ? (
-              theme === "dark" ? (
-                <IconSun className="h-4 w-4" />
-              ) : (
-                <IconMoon className="h-4 w-4" />
-              )
-            ) : (
-              <div className="h-4 w-4 bg-muted rounded"></div>
-            )}
-            <span>{mounted ? (theme === "dark" ? "Light Mode" : "Dark Mode") : "Loading..."}</span>
-          </button>
-        </div>
-
-        {/* Auth Toggle - Only show if portfolio owner */}
-        {isPortfolioOwner && (
+    <>
+      <Sidebar collapsible="offcanvas" {...props}>
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className="data-[slot=sidebar-menu-button]:!p-1.5 group"
+              >
+                <a href="#" className="flex items-center gap-2">
+                  <div className="relative">
+                    <IconInnerShadowTop className="!size-5 transition-transform group-hover:scale-110" />
+                    <div className="absolute -inset-1 bg-primary/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                  <span className="text-base font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                    Khalfan Athman
+                  </span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
+        <SidebarContent>
+          <NavMain 
+            items={data.navMain}
+          />
+          <NavDocuments items={data.documents(isLoggedIn)} />
+          
+          {/* Theme Toggle */}
           <div className="px-4 py-2">
             <button
-              onClick={isLoggedIn ? logout : login}
+              onClick={toggleTheme}
               className="flex items-center gap-3 w-full p-2 rounded-lg text-sm transition-all duration-200 hover:bg-accent hover:text-accent-foreground"
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             >
-              {isLoggedIn ? (
-                <IconLogout className="h-4 w-4" />
+              {mounted ? (
+                theme === "dark" ? (
+                  <IconSun className="h-4 w-4" />
+                ) : (
+                  <IconMoon className="h-4 w-4" />
+                )
               ) : (
-                <IconLogin className="h-4 w-4" />
+                <div className="h-4 w-4 bg-muted rounded"></div>
               )}
-              <span>{isLoggedIn ? "Sign Out" : "Sign In"}</span>
+              <span>{mounted ? (theme === "dark" ? "Light Mode" : "Dark Mode") : "Loading..."}</span>
             </button>
           </div>
-        )}
 
-        <NavSecondary
-          items={data.navSecondary(isLoggedIn, isPortfolioOwner)}
-          className="mt-auto"
-        />
-      </SidebarContent>
-      <SidebarFooter>
-        {isLoggedIn && isPortfolioOwner && (
-          <div className="px-4 py-2 text-xs text-muted-foreground text-center">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse inline-block mr-2"></div>
-            Online
-          </div>
-        )}
-      </SidebarFooter>
-    </Sidebar>
+          {/* Auth Toggle - Only show if portfolio owner */}
+
+        </SidebarContent>
+        <SidebarFooter>
+          {isLoggedIn && (
+            <div className="px-4 py-2 text-xs text-muted-foreground text-center">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse inline-block mr-2"></div>
+              Online
+            </div>
+          )}
+        </SidebarFooter>
+      </Sidebar>
+
+      {/* Quick Create Modal */}
+      <QuickCreateModal 
+        isOpen={showCreateModal} 
+        onClose={() => setShowCreateModal(false)} 
+      />
+    </>
   );
 }

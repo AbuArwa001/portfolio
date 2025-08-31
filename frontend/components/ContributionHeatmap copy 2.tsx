@@ -31,11 +31,11 @@ export default function ContributionHeatmap({
   }, [username]);
 
   const getColor = (count: number) => {
-    if (count === 0) return "bg-gray-200 dark:bg-gray-700";
-    if (count < 3) return "bg-green-200 dark:bg-green-800";
-    if (count < 6) return "bg-green-400 dark:bg-green-700";
-    if (count < 10) return "bg-green-600 dark:bg-green-600";
-    return "bg-green-800 dark:bg-green-900";
+    if (count === 0) return "bg-gray-200";
+    if (count < 3) return "bg-green-200";
+    if (count < 6) return "bg-green-400";
+    if (count < 10) return "bg-green-600";
+    return "bg-green-800";
   };
 
   // Build month labels - Improved approach
@@ -67,9 +67,9 @@ export default function ContributionHeatmap({
   const weekDays = ["Mon", "Wed", "Fri"];
 
   return (
-    <div className="w-full space-y-3">
+    <div className="space-y-5">
       {/* Month labels */}
-      <div className="flex text-xs text-gray-500 dark:text-gray-400 ml-8 relative h-4">
+      <div className="flex text-xs text-gray-500 ml-10 relative">
         {loading
           ? Array(12)
               .fill(null)
@@ -79,64 +79,59 @@ export default function ContributionHeatmap({
           : monthLabels.map((label, i) => (
               <div
                 key={i}
-                className="absolute text-xs"
-                style={{ 
-                  left: `${(label.index / weeks.length) * 100}%`,
-                  transform: 'translateX(-50%)'
-                }}
+                className="absolute"
+                style={{ left: `${label.index * 16}px` }} // 16px is approx width of a week column
               >
                 {label.month}
               </div>
             ))}
       </div>
 
-      <div className="flex w-full">
+      <div className="flex">
         {/* Weekday labels */}
-        <div className="flex flex-col mr-2 text-xs text-gray-500 dark:text-gray-400 justify-between py-0.5">
+        <div className="flex flex-col mr-2 text-xs text-gray-500 justify-between py-1">
           {weekDays.map((d) => (
-            <span key={d} className="h-3 text-[10px]">
+            <span key={d} className="h-3">
               {d}
             </span>
           ))}
         </div>
 
-        {/* Heatmap grid - Responsive container */}
-        <div className="flex-1 min-w-0">
-          <div className="flex space-x-0.5 overflow-x-auto pb-2 -mr-2">
-            {loading
-              ? Array.from({ length: 53 }).map((_, wi) => (
-                  <div key={wi} className="flex flex-col space-y-0.5 flex-shrink-0">
-                    {Array.from({ length: 7 }).map((_, di) => (
-                      <div
-                        key={di}
-                        className="w-3 h-3 bg-gray-300 dark:bg-gray-600 animate-pulse rounded-sm"
-                      />
-                    ))}
-                  </div>
-                ))
-              : weeks.map((week, wi) => (
-                  <div key={wi} className="flex flex-col space-y-0.5 flex-shrink-0">
-                    {week.contributionDays.map((day, di) => (
-                      <div
-                        key={di}
-                        className={`w-3 h-3 ${getColor(day.contributionCount)} transition-colors duration-200`}
-                        title={`${day.date}: ${day.contributionCount} contributions`}
-                      />
-                    ))}
-                  </div>
-                ))}
-          </div>
+        {/* Heatmap grid */}
+        <div className="flex space-x-1 overflow-x-auto">
+          {loading
+            ? Array.from({ length: 53 }).map((_, wi) => (
+                <div key={wi} className="flex flex-col space-y-1">
+                  {Array.from({ length: 7 }).map((_, di) => (
+                    <div
+                      key={di}
+                      className="w-3 h-3 bg-gray-300 animate-pulse"
+                    />
+                  ))}
+                </div>
+              ))
+            : weeks.map((week, wi) => (
+                <div key={wi} className="flex flex-col space-y-1">
+                  {week.contributionDays.map((day, di) => (
+                    <div
+                      key={di}
+                      className={`w-3 h-3 ${getColor(day.contributionCount)}`}
+                      title={`${day.date}: ${day.contributionCount} contributions`}
+                    />
+                  ))}
+                </div>
+              ))}
         </div>
       </div>
 
       {/* Legend */}
       {!loading && (
-        <div className="flex items-center justify-end space-x-1 text-xs text-gray-500 dark:text-gray-400 mt-2">
-          <span className="text-[10px]">Less</span>
+        <div className="flex items-center justify-end space-x-1 text-xs text-gray-500">
+          <span>Less</span>
           {[0, 2, 5, 9, 15].map((c, i) => (
-            <div key={i} className={`w-3 h-3 ${getColor(c)} rounded-sm`} />
+            <div key={i} className={`w-3 h-3 ${getColor(c)}`} />
           ))}
-          <span className="text-[10px]">More</span>
+          <span>More</span>
         </div>
       )}
     </div>

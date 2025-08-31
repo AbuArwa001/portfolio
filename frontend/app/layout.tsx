@@ -20,6 +20,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Portfolio - Khalfan Athman",
   description: "Khalfan Athman portfolio to showcase skills and experience",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({

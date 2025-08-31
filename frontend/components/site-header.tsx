@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ModeToggle } from "./mode-toggle";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import {
   Bell,
   Mail,
@@ -35,8 +35,7 @@ export function SiteHeader() {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [showHiddenItems, setShowHiddenItems] = useState(false);
 
-  // // Check if user is the portfolio owner (you)
-  // const isPortfolioOwner = session?.user?.email === "your-email@example.com";
+  // Remove the unused useAuth hook since we're using NextAuth
 
   // Enable admin mode with a secret key sequence (press 'A' three times)
   useEffect(() => {
@@ -66,6 +65,10 @@ export function SiteHeader() {
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, []);
+
+  const handleLogout = async () => {
+    await signOut({ redirect: true, callbackUrl: "/" });
+  };
 
   return (
     <motion.header
@@ -230,7 +233,7 @@ export function SiteHeader() {
                   <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
