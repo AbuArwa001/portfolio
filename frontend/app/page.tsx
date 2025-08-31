@@ -134,7 +134,8 @@ export default function Page() {
             Developer Dashboard
           </h1>
           <p className="text-slate-600 dark:text-slate-300">
-            Welcome back! Here&apos;s an overview of Khalfan Athman projects and progress.
+            Welcome back! Here&apos;s an overview of Khalfan Athman projects and
+            progress.
           </p>
         </motion.div>
 

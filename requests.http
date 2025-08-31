@@ -155,7 +155,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 POST http://localhost:8000/api/auth/profile/bulk/languages/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NDg4NTc5LCJpYXQiOjE3NTY0ODQ5NzksImp0aSI6ImM5MGFlY2VlMjAwNDRkMWZhM2YwMzJhMmNkZDA5ZWVlIiwidXNlcl9pZCI6IjIifQ.-T_ZC4eUjplNnNpclHL9-tLpNx4A7GiTbJgoMmFHH9Q
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NjM1NjUzLCJpYXQiOjE3NTY2MzIwNTMsImp0aSI6ImVjNWY1NGMzOTRmZjRjMDQ5NzE1OThjNTM2YTdlNTZlIiwidXNlcl9pZCI6IjMifQ.tkmb67EvCX2N62mk8TU-CzTwt8CA03_LJOkg0yDxZcU
 
 [
     {
@@ -175,7 +175,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ###
 POST http://localhost:8000/api/auth/profile/bulk/certifications/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NjM0Mzk3LCJpYXQiOjE3NTY2MzA3OTcsImp0aSI6ImE2ZWJjMDBiZDk5ZTQ0NDRiMjY0NzU2OTViNDBmMmE2IiwidXNlcl9pZCI6IjIifQ.4qV-vnjHA6waQiOLAj_AUdq7S8lxmWi7yJIh5jXuX2U
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2NjM1NjUzLCJpYXQiOjE3NTY2MzIwNTMsImp0aSI6ImVjNWY1NGMzOTRmZjRjMDQ5NzE1OThjNTM2YTdlNTZlIiwidXNlcl9pZCI6IjMifQ.tkmb67EvCX2N62mk8TU-CzTwt8CA03_LJOkg0yDxZcU
 
 [
     {
@@ -184,26 +184,37 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
         "date": "2026",
         "in_progress": true
     },
-
-    {
-        "title": "AWS Cloud Practitioner",
-        "issuer": "Amazon",
-        "date": "2025",
-        "in_progress": false
-    },
     {
         "title": "AWS Solutions Architect",
         "issuer": "Amazon",
         "date": "2025",
         "in_progress": true
     },
+    {
+        "title": "AWS Cloud Practitioner",
+        "issuer": "Amazon",
+        "date": "2025",
+        "in_progress": false
+    },
 
         {
+        "title": "ProDev Backend",
+        "issuer": "ALX",
+        "date": "2025",
+        "in_progress": false
+    },
+        {
+        "title": "Software Engineering",
+        "issuer": "ALX",
+        "date": "2024",
+        "in_progress": false
+    },
+    {
         "title": "Introduction To Relational Databases",
         "issuer": "Coursera",
         "date": "2020",
         "in_progress": false
-    },
+    }
 ]
 ###
 
