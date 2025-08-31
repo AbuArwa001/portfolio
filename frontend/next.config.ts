@@ -16,7 +16,11 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "www.khalfanathman.dev/",
+        hostname: "www.khalfanathman.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "khalfanathman.dev",
       },
       {
         protocol: "https",
