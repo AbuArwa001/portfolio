@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:email": "email dev -p 3030",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -43,6 +44,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "recharts": "^2.15.4",
+    "resend": "^6.0.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "tw-animate-css": "^1.3.7",
@@ -51,12 +53,14 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@react-email/preview-server": "^4.2.8",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.11",
     "@types/react": "^19.1.11",
     "@types/react-dom": "^19.1.8",
     "eslint": "^9",
     "eslint-config-next": "15.5.0",
+    "react-email": "4.2.8",
     "tailwindcss": "^4",
     "typescript": "^5.9.2"
   }

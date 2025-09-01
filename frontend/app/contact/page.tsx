@@ -1,13 +1,22 @@
-// app/contact/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, Phone, MapPin, Send, Linkedin, Github, MessageSquare } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Send,
+  Linkedin,
+  Github,
+  MessageSquare,
+  Paperclip,
+  X,
+} from "lucide-react";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -20,6 +29,9 @@ export default function ContactPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isMounted, setIsMounted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -27,27 +39,47 @@ export default function ContactPage() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email";
     }
-    
+
     if (!formData.subject.trim()) {
       newErrors.subject = "Subject is required";
     }
-    
+
     if (!formData.message.trim()) {
       newErrors.message = "Message is required";
     } else if (formData.message.length < 10) {
       newErrors.message = "Message should be at least 10 characters";
     }
-    
+
+    // Validate attachments
+    if (attachments.length > 0) {
+      const totalSize = attachments.reduce(
+        (total, file) => total + file.size,
+        0
+      );
+      if (totalSize > 10 * 1024 * 1024) {
+        // 10MB limit
+        newErrors.attachments = "Total attachment size cannot exceed 10MB";
+      }
+
+      for (const file of attachments) {
+        if (file.size > 5 * 1024 * 1024) {
+          // 5MB per file limit
+          newErrors.attachments = "Individual files cannot exceed 5MB";
+          break;
+        }
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -57,31 +89,87 @@ export default function ContactPage() {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+
+    // Clear submit error when user starts typing
+    if (submitError) {
+      setSubmitError("");
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newFiles = Array.from(files);
+
+    // Check for duplicates
+    const filteredFiles = newFiles.filter(
+      (newFile) =>
+        !attachments.some(
+          (existingFile) =>
+            existingFile.name === newFile.name &&
+            existingFile.size === newFile.size
+        )
+    );
+
+    setAttachments((prev) => [...prev, ...filteredFiles]);
+
+    // Clear the input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
-    setIsSubmitting(true);
 
-    // Simulate API call
+    setIsSubmitting(true);
+    setSubmitError("");
+
     try {
-      // In a real implementation, you would use your API here
-      // await api.contact.create(formData);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const formDataToSend = new FormData();
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("subject", formData.subject);
+      formDataToSend.append("message", formData.message);
+
+      // Append attachments
+      attachments.forEach((file) => {
+        formDataToSend.append("attachments", file);
+      });
+
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        body: formDataToSend,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send message");
+      }
+
       setIsSubmitted(true);
       setFormData({ name: "", email: "", subject: "", message: "" });
+      setAttachments([]);
     } catch (error) {
       console.error("Error submitting form:", error);
+      setSubmitError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -102,7 +190,8 @@ export default function ContactPage() {
           Get In Touch
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-          Have a question or want to work together? I&apos;d love to hear from you!
+          Have a question or want to work together? I&apos;d love to hear from
+          you!
         </p>
       </div>
 
@@ -121,8 +210,8 @@ export default function ContactPage() {
                 <Mail className="h-5 w-5 mr-3 text-primary mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium">Email</p>
-                  <a 
-                    href="mailto:khalfan@khalfanathman.dev" 
+                  <a
+                    href="mailto:khalfan@khalfanathman.dev"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
                     khalfan@khalfanathman.dev
@@ -133,8 +222,8 @@ export default function ContactPage() {
                 <Phone className="h-5 w-5 mr-3 text-primary mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium">Phone</p>
-                  <a 
-                    href="tel:+254719401851" 
+                  <a
+                    href="tel:+254719401851"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
                     +254 719 401851
@@ -194,17 +283,17 @@ export default function ContactPage() {
             <CardContent className="p-6">
               <div className="text-center">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg 
-                    className="w-6 h-6 text-primary" 
-                    fill="none" 
-                    stroke="currentColor" 
+                  <svg
+                    className="w-6 h-6 text-primary"
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
                 </div>
@@ -248,9 +337,10 @@ export default function ContactPage() {
                     Message Sent Successfully!
                   </h3>
                   <p className="text-muted-foreground mb-6">
-                    Thank you for your message. I&apos;ll get back to you as soon as possible.
+                    Thank you for your message. I&apos;ll get back to you as
+                    soon as possible.
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => setIsSubmitted(false)}
                     className="animate-pulse"
                   >
@@ -259,6 +349,11 @@ export default function ContactPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {submitError && (
+                    <div className="p-3 bg-destructive/10 border border-destructive rounded-md text-destructive">
+                      {submitError}
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="name">Name *</Label>
@@ -271,7 +366,9 @@ export default function ContactPage() {
                         placeholder="Your full name"
                       />
                       {errors.name && (
-                        <p className="text-sm text-destructive">{errors.name}</p>
+                        <p className="text-sm text-destructive">
+                          {errors.name}
+                        </p>
                       )}
                     </div>
                     <div className="space-y-2">
@@ -286,7 +383,9 @@ export default function ContactPage() {
                         placeholder="your.email@example.com"
                       />
                       {errors.email && (
-                        <p className="text-sm text-destructive">{errors.email}</p>
+                        <p className="text-sm text-destructive">
+                          {errors.email}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -301,7 +400,9 @@ export default function ContactPage() {
                       placeholder="What is this regarding?"
                     />
                     {errors.subject && (
-                      <p className="text-sm text-destructive">{errors.subject}</p>
+                      <p className="text-sm text-destructive">
+                        {errors.subject}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -314,14 +415,84 @@ export default function ContactPage() {
                       onChange={handleChange}
                       className={errors.message ? "border-destructive" : ""}
                       placeholder="Tell me how I can help you..."
+                      maxLength={500}
                     />
                     {errors.message && (
-                      <p className="text-sm text-destructive">{errors.message}</p>
+                      <p className="text-sm text-destructive">
+                        {errors.message}
+                      </p>
                     )}
                     <p className="text-xs text-muted-foreground text-right">
                       {formData.message.length}/500 characters
                     </p>
                   </div>
+
+                  {/* File Attachment Section */}
+                  <div className="space-y-2">
+                    <Label htmlFor="attachments">Attachments (Optional)</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="attachments"
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        onChange={handleFileSelect}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-2"
+                      >
+                        <Paperclip className="h-4 w-4" />
+                        Add Files
+                      </Button>
+                      <span className="text-sm text-muted-foreground">
+                        Max 5MB per file, 10MB total
+                      </span>
+                    </div>
+
+                    {errors.attachments && (
+                      <p className="text-sm text-destructive">
+                        {errors.attachments}
+                      </p>
+                    )}
+
+                    {attachments.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <p className="text-sm font-medium">Selected files:</p>
+                        <div className="space-y-2">
+                          {attachments.map((file, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-2 bg-muted rounded-md"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Paperclip className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm truncate max-w-xs">
+                                  {file.name}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  ({(file.size / 1024).toFixed(0)} KB)
+                                </span>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeAttachment(index)}
+                                className="h-6 w-6"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <Button
                     type="submit"
                     className="w-full h-12 text-base transition-all duration-200 hover:scale-[1.02]"

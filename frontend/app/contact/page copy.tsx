@@ -1,13 +1,20 @@
-// app/contact/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Send,
+  Linkedin,
+  Github,
+  MessageSquare,
+} from "lucide-react";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -18,67 +25,152 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isMounted, setIsMounted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email";
+    }
+
+    if (!formData.subject.trim()) {
+      newErrors.subject = "Subject is required";
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = "Message is required";
+    } else if (formData.message.length < 10) {
+      newErrors.message = "Message should be at least 10 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+
+    // Clear submit error when user starts typing
+    if (submitError) {
+      setSubmitError("");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    // Simulate API call
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError("");
+
     try {
-      // In a real implementation, you would use your API here
-      // await api.contact.create(formData);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send message");
+      }
+
       setIsSubmitted(true);
       setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (error) {
       console.error("Error submitting form:", error);
+      setSubmitError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold mb-2">Get In Touch</h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Have a question or want to work together? Feel free to contact me!
+        <h1 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
+          Get In Touch
+        </h1>
+        <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+          Have a question or want to work together? I&apos;d love to hear from
+          you!
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Contact Information */}
         <div className="lg:col-span-1 space-y-6">
-          <Card>
+          <Card className="hover:shadow-lg transition-shadow duration-300">
             <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
+              <CardTitle className="flex items-center">
+                <MessageSquare className="mr-2 h-5 w-5 text-primary" />
+                Contact Information
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center">
-                <Mail className="h-5 w-5 mr-3 text-primary" />
+            <CardContent className="space-y-6">
+              <div className="flex items-start p-3 rounded-lg hover:bg-accent/50 transition-colors duration-200">
+                <Mail className="h-5 w-5 mr-3 text-primary mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium">Email</p>
-                  <p className="text-muted-foreground">
+                  <a
+                    href="mailto:khalfan@khalfanathman.dev"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
                     khalfan@khalfanathman.dev
-                  </p>
+                  </a>
                 </div>
               </div>
-              <div className="flex items-center">
-                <Phone className="h-5 w-5 mr-3 text-primary" />
+              <div className="flex items-start p-3 rounded-lg hover:bg-accent/50 transition-colors duration-200">
+                <Phone className="h-5 w-5 mr-3 text-primary mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium">Phone</p>
-                  <p className="text-muted-foreground">+254719401851</p>
+                  <a
+                    href="tel:+254719401851"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    +254 719 401851
+                  </a>
                 </div>
               </div>
-              <div className="flex items-center">
-                <MapPin className="h-5 w-5 mr-3 text-primary" />
+              <div className="flex items-start p-3 rounded-lg hover:bg-accent/50 transition-colors duration-200">
+                <MapPin className="h-5 w-5 mr-3 text-primary mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium">Location</p>
                   <p className="text-muted-foreground">Nairobi, Kenya</p>
@@ -87,66 +179,51 @@ export default function ContactPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover:shadow-lg transition-shadow duration-300">
             <CardHeader>
               <CardTitle>Connect With Me</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
               <Button
                 variant="outline"
-                className="w-full justify-start"
+                className="w-full justify-start h-12 transition-all duration-200 hover:scale-[1.02]"
                 asChild
               >
                 <a
                   href="https://www.linkedin.com/in/khalfaniathman"
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="flex items-center"
                 >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                  </svg>
+                  <Linkedin className="w-4 h-4 mr-3" />
                   LinkedIn
                 </a>
               </Button>
               <Button
                 variant="outline"
-                className="w-full justify-start"
+                className="w-full justify-start h-12 transition-all duration-200 hover:scale-[1.02]"
                 asChild
               >
                 <a
                   href="https://github.com/AbuArwa001"
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="flex items-center"
                 >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
-                  </svg>
+                  <Github className="w-4 h-4 mr-3" />
                   GitHub
                 </a>
               </Button>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Contact Form */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Send Me a Message</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isSubmitted ? (
-                <div className="text-center py-8">
+          {/* Response Time Info */}
+          <Card className="bg-muted/50 border-dashed">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
                   <svg
-                    className="w-16 h-16 text-green-500 mx-auto mb-4"
+                    className="w-6 h-6 text-primary"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -155,69 +232,142 @@ export default function ContactPage() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <h3 className="text-xl font-semibold mb-2">
+                </div>
+                <h3 className="font-semibold mb-1">Quick Response</h3>
+                <p className="text-sm text-muted-foreground">
+                  I typically respond within 24 hours
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Contact Form */}
+        <div className="lg:col-span-2">
+          <Card className="hover:shadow-lg transition-shadow duration-300">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Send className="mr-2 h-5 w-5 text-primary" />
+                Send Me a Message
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isSubmitted ? (
+                <div className="text-center py-8 animate-fade-in">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg
+                      className="w-8 h-8 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2 text-green-800">
                     Message Sent Successfully!
                   </h3>
-                  <p className="text-muted-foreground mb-4">
+                  <p className="text-muted-foreground mb-6">
                     Thank you for your message. I&apos;ll get back to you as
                     soon as possible.
                   </p>
-                  <Button onClick={() => setIsSubmitted(false)}>
+                  <Button
+                    onClick={() => setIsSubmitted(false)}
+                    className="animate-pulse"
+                  >
                     Send Another Message
                   </Button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {submitError && (
+                    <div className="p-3 bg-destructive/10 border border-destructive rounded-md text-destructive">
+                      {submitError}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Name</Label>
+                      <Label htmlFor="name">Name *</Label>
                       <Input
                         id="name"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        required
+                        className={errors.name ? "border-destructive" : ""}
+                        placeholder="Your full name"
                       />
+                      {errors.name && (
+                        <p className="text-sm text-destructive">
+                          {errors.name}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email">Email *</Label>
                       <Input
                         id="email"
                         name="email"
                         type="email"
                         value={formData.email}
                         onChange={handleChange}
-                        required
+                        className={errors.email ? "border-destructive" : ""}
+                        placeholder="your.email@example.com"
                       />
+                      {errors.email && (
+                        <p className="text-sm text-destructive">
+                          {errors.email}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="subject">Subject</Label>
+                    <Label htmlFor="subject">Subject *</Label>
                     <Input
                       id="subject"
                       name="subject"
                       value={formData.subject}
                       onChange={handleChange}
-                      required
+                      className={errors.subject ? "border-destructive" : ""}
+                      placeholder="What is this regarding?"
                     />
+                    {errors.subject && (
+                      <p className="text-sm text-destructive">
+                        {errors.subject}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="message">Message</Label>
+                    <Label htmlFor="message">Message *</Label>
                     <Textarea
                       id="message"
                       name="message"
                       rows={5}
                       value={formData.message}
                       onChange={handleChange}
-                      required
+                      className={errors.message ? "border-destructive" : ""}
+                      placeholder="Tell me how I can help you..."
+                      maxLength={500}
                     />
+                    {errors.message && (
+                      <p className="text-sm text-destructive">
+                        {errors.message}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground text-right">
+                      {formData.message.length}/500 characters
+                    </p>
                   </div>
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full h-12 text-base transition-all duration-200 hover:scale-[1.02]"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
