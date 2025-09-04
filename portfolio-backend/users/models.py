@@ -43,8 +43,10 @@ class Certification(models.Model):
         ('alx', 'ALX'),
         ('other', 'Other'),
     ],
+    
     default='other'
     )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='certifications_created')
     in_progress = models.BooleanField(default=False)
 
     

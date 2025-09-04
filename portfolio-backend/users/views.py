@@ -1,3 +1,4 @@
+# portfolio-backend/users/views.py
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -5,9 +6,29 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from .models import Certification, Language, Skill, SkillCategory, UserProfile
-from .serializers import LanguageSerializer, SkillCategorySerializer, SkillSerializer, UserSerializer, UserProfileSerializer, UserRegistrationSerializer, CertificationSerializer
+from .serializers import (
+    LanguageSerializer,
+    SkillCategorySerializer,
+    SkillSerializer,
+    UserSerializer,
+    UserProfileSerializer,
+    UserRegistrationSerializer,
+    CertificationSerializer,
+)
 
 User = get_user_model()
+
+def get_target_user(request):
+    """Helper function to get the appropriate user based on authentication"""
+    if request.user.is_authenticated:
+        return request.user
+    else:
+        try:
+            return User.objects.get(username="AbuArwa001")
+        except User.DoesNotExist:
+            return None
+
+# ---------------- AUTH & USER ----------------
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -42,16 +63,10 @@ def register_user(request):
             last_name=serializer.validated_data.get('last_name', ''),
             password=make_password(serializer.validated_data['password'])
         )
-        
         # Create profile
         UserProfile.objects.create(user=user)
-        
-        # Return user data
-        user_serializer = UserSerializer(user)
-        return Response(user_serializer.data, status=status.HTTP_201_CREATED)
-    
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -59,195 +74,236 @@ def get_user_data(request):
     """
     Get user for Portfolio website owner
     """
-    user = User.objects.get(username="AbuArwa001")
-    serializer = UserSerializer(user)
-    return Response(serializer.data)
+    try:
+        user = User.objects.get(username="AbuArwa001")
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=404)
+
+# ---------------- PROFILE ----------------
 
 @api_view(['GET','POST', 'DELETE'])
+@permission_classes([AllowAny])
 def get_profile(request):
+    target_user = get_target_user(request)
+    if not target_user:
+        return Response({'error': 'User not found'}, status=404)
 
     if request.method == 'GET':
         try:
-            user = User.objects.get(username="AbuArwa001")
-            profile = user.profile
-            serializer = UserProfileSerializer(profile)
-            return Response(serializer.data)
+            profile = target_user.profile
+            return Response(UserProfileSerializer(profile).data)
         except UserProfile.DoesNotExist:
             return Response({'error': 'Profile not found'}, status=404)
 
     elif request.method == 'POST':
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=401)
         try:
             profile = request.user.profile
         except UserProfile.DoesNotExist:
             profile = UserProfile.objects.create(user=request.user)
-
         serializer = UserProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=400)
 
     elif request.method == 'DELETE':
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=401)
         try:
-            profile = request.user.profile
-            profile.delete()
+            request.user.profile.delete()
             return Response(status=204)
         except UserProfile.DoesNotExist:
             return Response({'error': 'Profile not found'}, status=404)
 
-# For adding/removing certifications
+# ---------------- CERTIFICATIONS ----------------
+
+# portfolio-backend/users/views.py
 @api_view(['GET', 'POST', 'DELETE', 'PATCH'])
+@permission_classes([AllowAny])
 def manage_certifications(request, cert_id=None):
-    profile = User.objects.get(username="AbuArwa001").profile
-    # profile = request.user.profile
+    target_user = get_target_user(request)
+    if not target_user:
+        return Response({'error': 'User not found'}, status=404)
+
+    profile = target_user.profile
+    
     if request.method == 'GET':
         if cert_id:
             try:
-                cert = Certification.objects.get(id=cert_id)
-                serializer = CertificationSerializer(cert)
-                return Response(serializer.data)
+                # FIXED: Check if certification belongs to user's profile
+                cert = profile.certifications.get(id=cert_id)
+                return Response(CertificationSerializer(cert).data)
             except Certification.DoesNotExist:
                 return Response({'error': 'Certification not found'}, status=404)
 
         certifications = profile.certifications.all()
-        serializer = CertificationSerializer(certifications, many=True)
-        return Response(serializer.data)
+        return Response(CertificationSerializer(certifications, many=True).data)
 
-    if request.method == 'POST' and permission_classes([IsAuthenticated]):
-        # Add new certification
+    elif request.method == 'POST':
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=401)
+        
         serializer = CertificationSerializer(data=request.data)
         if serializer.is_valid():
             cert = serializer.save()
-            profile.certifications.add(cert)
-            return Response(serializer.data)
+            request.user.profile.certifications.add(cert)
+            return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
-    if request.method == 'PATCH' and cert_id and permission_classes([IsAuthenticated]):
-        cert = Certification.objects.get(id=cert_id)
-        serializer = CertificationSerializer(cert, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
-
-    elif request.method == 'DELETE' and cert_id and permission_classes([IsAuthenticated]):
-        # Remove certification
+    
+    elif request.method == 'PATCH' and cert_id:
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=401)
+        
         try:
-            cert = Certification.objects.get(id=cert_id)
-            profile.certifications.remove(cert)
+            # FIXED: Check if certification belongs to user's profile
+            cert = request.user.profile.certifications.get(id=cert_id)
+            serializer = CertificationSerializer(cert, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=400)
+        except Certification.DoesNotExist:
+            return Response({'error': 'Certification not found'}, status=404)
+
+    elif request.method == 'DELETE' and cert_id:
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=401)
+        
+        try:
+            # FIXED: Check if certification belongs to user's profile
+            cert = request.user.profile.certifications.get(id=cert_id)
+            request.user.profile.certifications.remove(cert)
+            # Don't delete the certification object itself as it might be used by others
             return Response(status=204)
         except Certification.DoesNotExist:
             return Response({'error': 'Certification not found'}, status=404)
 
-@api_view(['GET','POST', 'DELETE'])
-def manage_skills(request, skill_id=None):
+# ---------------- SKILLS ----------------
 
-    profile = User.objects.get(username="AbuArwa001").profile
+@api_view(['GET','POST', 'DELETE'])
+@permission_classes([AllowAny])
+def manage_skills(request, skill_id=None):
+    target_user = get_target_user(request)
+    if not target_user:
+        return Response({'error': 'User not found'}, status=404)
+
+    profile = target_user.profile
+    
     if request.method == 'GET':
         if skill_id:
             try:
-                skill = SkillCategory.objects.get(id=skill_id)
-                serializer = SkillCategorySerializer(skill)
-                return Response(serializer.data)
-            except SkillCategory.DoesNotExist:
-                return Response({'error': 'Skill category not found'}, status=404)
-        skills = profile.skill_categories.all()
-        serializer = SkillCategorySerializer(skills, many=True)
-        return Response(serializer.data)
-
-    if request.method == 'POST' and permission_classes([IsAuthenticated]):
+                skill = Skill.objects.get(id=skill_id)
+                return Response(SkillSerializer(skill).data)
+            except Skill.DoesNotExist:
+                return Response({'error': 'Skill not found'}, status=404)
         
-        # Add new skill
+        # FIXED: Get skills through categories
+        user_categories = profile.skill_categories.all()
+        skills = Skill.objects.filter(category__in=user_categories)
+        return Response(SkillSerializer(skills, many=True).data)
+
+    elif request.method == 'POST':
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=401)
+        
         serializer = SkillSerializer(data=request.data)
         if serializer.is_valid():
             skill = serializer.save()
-            profile.skills.add(skill)
-            return Response(serializer.data)
+            # Note: You might want to add the category to user's profile
+            # if it's not already there
+            if skill.category not in request.user.profile.skill_categories.all():
+                request.user.profile.skill_categories.add(skill.category)
+            return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
-    elif request.method == 'DELETE' and skill_id and permission_classes([IsAuthenticated]):
-        # Remove skill
+    elif request.method == 'DELETE' and skill_id:
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=401)
+        
         try:
             skill = Skill.objects.get(id=skill_id)
-            profile.skills.remove(skill)
-            return Response(status=204)
+            # Check if this skill belongs to the user's categories
+            if skill.category in request.user.profile.skill_categories.all():
+                skill.delete()
+                return Response(status=204)
+            else:
+                return Response({'error': 'Skill not found in your categories'}, status=404)
         except Skill.DoesNotExist:
             return Response({'error': 'Skill not found'}, status=404)
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def manage_skill_categories(request, category_id=None):
-    profile = User.objects.get(username="AbuArwa001").profile
-    if request.method == 'GET':
-        if category_id:
-            try:
-                category = SkillCategory.objects.get(id=category_id)
-                serializer = SkillCategorySerializer(category)
-                return Response(serializer.data)
-            except SkillCategory.DoesNotExist:
-                return Response({'error': 'Skill category not found'}, status=404)
-        categories = profile.skill_categories.all()
-        serializer = SkillCategorySerializer(categories, many=True)
-        return Response(serializer.data)
+    target_user = get_target_user(request)
+    if not target_user:
+        return Response({'error': 'User not found'}, status=404)
+
+    profile = target_user.profile
+    if category_id:
+        try:
+            category = SkillCategory.objects.get(id=category_id)
+            return Response(SkillCategorySerializer(category).data)
+        except SkillCategory.DoesNotExist:
+            return Response({'error': 'Skill category not found'}, status=404)
+    return Response(SkillCategorySerializer(profile.skill_categories.all(), many=True).data)
+
+# ---------------- LANGUAGES ----------------
 
 @api_view(['GET', 'POST', 'DELETE'])
+@permission_classes([AllowAny])
 def manage_languages(request, language_id=None):
-    profile = User.objects.get(username="AbuArwa001").profile
+    target_user = get_target_user(request)
+    if not target_user:
+        return Response({'error': 'User not found'}, status=404)
+
+    profile = target_user.profile
+    
     if request.method == 'GET':
         if language_id:
             try:
                 language = Language.objects.get(id=language_id)
-                serializer = LanguageSerializer(language)
-                return Response(serializer.data)
+                return Response(LanguageSerializer(language).data)
             except Language.DoesNotExist:
                 return Response({'error': 'Language not found'}, status=404)
-        languages = profile.languages.all()
-        serializer = LanguageSerializer(languages, many=True)
-        return Response(serializer.data)
+        return Response(LanguageSerializer(profile.languages.all(), many=True).data)
 
-    if request.method == 'POST':
-        # Add new language
+    elif request.method == 'POST':
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=401)
         serializer = LanguageSerializer(data=request.data)
         if serializer.is_valid():
             language = serializer.save()
-            profile.languages.add(language)
-            return Response(serializer.data)
+            request.user.profile.languages.add(language)
+            return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
     elif request.method == 'DELETE':
-        # Remove language
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=401)
         language_id = request.data.get('id')
         try:
             language = Language.objects.get(id=language_id)
-            profile.languages.remove(language)
+            request.user.profile.languages.remove(language)
             return Response(status=204)
         except Language.DoesNotExist:
             return Response({'error': 'Language not found'}, status=404)
 
+# ---------------- BULK UPDATES ----------------
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def bulk_update_skills(request):
-    """
-    Bulk update skills with categories and nested skills
-    """
     profile = request.user.profile
     data = request.data
-    
-    # Check if data is a list
     if not isinstance(data, list):
-        return Response(
-            {"error": "Expected a list of skill categories"}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # Clear existing skills and categories for this user
+        return Response({"error": "Expected a list of skill categories"}, status=400)
     profile.skill_categories.clear()
-    
     for category_data in data:
-        # Get or create the skill category
-        category, created = SkillCategory.objects.get_or_create(
-            name=category_data['category']
-        )
-        
-        # Create or update skills in this category
+        category, _ = SkillCategory.objects.get_or_create(name=category_data['category'])
         for skill_data in category_data['skills']:
             skill, created = Skill.objects.get_or_create(
                 name=skill_data['name'],
@@ -257,31 +313,21 @@ def bulk_update_skills(request):
             if not created:
                 skill.level = skill_data['level']
                 skill.save()
-        
-        # Add category to user's profile
         profile.skill_categories.add(category)
-    
     return Response({'status': 'Skills updated successfully'})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def bulk_update_certifications(request):
-    """
-    Bulk update certifications
-    """
     profile = request.user.profile
     data = request.data
     
     if not isinstance(data, list):
-        return Response(
-            {"error": "Expected a list of certifications"}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"error": "Expected a list of certifications"}, status=400)
     
     profile.certifications.clear()
     
     for cert_data in data:
-        # Handle both 'inProgress' and 'in_progress' field names
         in_progress = cert_data.get('inProgress', cert_data.get('in_progress', False))
         
         cert, created = Certification.objects.get_or_create(
@@ -289,9 +335,20 @@ def bulk_update_certifications(request):
             issuer=cert_data['issuer'],
             defaults={
                 'date': cert_data['date'],
-                'in_progress': in_progress
+                'in_progress': in_progress,
+                'type': cert_data.get('type', 'other'),
+                'badge': cert_data.get('badge', ''),
+                'user': request.user  # Set the user who created it
             }
         )
+        
+        if not created:
+            cert.date = cert_data['date']
+            cert.in_progress = in_progress
+            cert.type = cert_data.get('type', 'other')
+            cert.badge = cert_data.get('badge', '')
+            cert.save()
+        
         profile.certifications.add(cert)
     
     return Response({'status': 'Certifications updated successfully'})
@@ -299,25 +356,15 @@ def bulk_update_certifications(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def bulk_update_languages(request):
-    """
-    Bulk update languages
-    """
     profile = request.user.profile
     data = request.data
-    
     if not isinstance(data, list):
-        return Response(
-            {"error": "Expected a list of languages"}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
+        return Response({"error": "Expected a list of languages"}, status=400)
     profile.languages.clear()
-    
     for lang_data in data:
-        lang, created = Language.objects.get_or_create(
+        lang, _ = Language.objects.get_or_create(
             name=lang_data['name'],
             proficiency=lang_data['proficiency']
         )
         profile.languages.add(lang)
-    
     return Response({'status': 'Languages updated successfully'})

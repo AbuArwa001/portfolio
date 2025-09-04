@@ -6,6 +6,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
+import { AdminPanel } from "@/components/AdminPanel";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,6 +57,7 @@ export default function RootLayout({
               <SidebarInset>
                 <SiteHeader />
                 {children}
+                <AdminPanel />
               </SidebarInset>
             </SidebarProvider>
           </ThemeProvider>

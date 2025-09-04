@@ -53,6 +53,35 @@ export const authFetch = async <T>(
   }
   return response.json() as Promise<T>;
 };
+// lib/api.ts
+const authFetchToken = async (url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem("authToken");
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string>),
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  // Use /api/django instead of /api/auth to avoid NextAuth.js conflict
+  const response = await fetch(`/api/django${url}`, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`HTTP ${response.status} error for ${url}:`, errorText);
+    throw new Error(
+      `HTTP error! status: ${response.status}, message: ${errorText}`
+    );
+  }
+
+  return response.json();
+};
 
 // Public API endpoints (no authentication needed)
 export const api = {
@@ -71,6 +100,22 @@ export const api = {
       authFetch(`/profile/skills/${id}/`, {
         method: "DELETE",
       }),
+    create: async (data: Skill): Promise<Skill> => {
+      const response = await fetch("/api/auth/profile/skills/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+    delete: async (id: number): Promise<Skill> => {
+      const response = await fetch(`/api/auth/profile/skills/${id}/`, {
+        method: "DELETE",
+      });
+      return response.json();
+    },
   },
   certifications: {
     get: (): Promise<Certification[]> => authFetch("/profile/certifications/"),
@@ -81,10 +126,22 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
-    remove: (id: string) =>
-      authFetch(`/profile/certifications/${id}/`, {
+    create: async (data: Certification): Promise<Certification> => {
+      const response = await fetch("/api/auth/profile/certifications/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+    delete: async (id: number): Promise<Certification> => {
+      const response = await fetch(`/api/auth/profile/certifications/${id}/`, {
         method: "DELETE",
-      }),
+      });
+      return response.json();
+    },
   },
   Languages: {
     get: (): Promise<Language[]> => authFetch("/profile/languages/"),
@@ -108,6 +165,12 @@ export const api = {
   },
   profile: {
     get: (): Promise<UserProfile> => authFetch("/profile/"),
+    update: async (data: UserProfile): Promise<UserProfile> => {
+      return authFetchToken("/profile/update/", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
   },
 
   about: {
@@ -115,6 +178,22 @@ export const api = {
   },
   projects: {
     get: (): Promise<Project[]> => publicFetch("/projects/"),
+    create: async (data: Project): Promise<Project> => {
+      const response = await fetch("/api/projects/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+    delete: async (id: number): Promise<Project> => {
+      const response = await fetch(`/api/projects/${id}/`, {
+        method: "DELETE",
+      });
+      return response.json();
+    },
   },
   blog: {
     get: (): Promise<BlogPost[]> => publicFetch("/blog/"),
