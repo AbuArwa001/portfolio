@@ -12,6 +12,8 @@ import {
   Language,
   Certification,
 } from "../types";
+import { getSession } from "next-auth/react";
+
 export const publicFetch = async <T>(
   url: string,
   options: RequestInit = {}
@@ -53,35 +55,171 @@ export const authFetch = async <T>(
   }
   return response.json() as Promise<T>;
 };
-// lib/api.ts
+
 const authFetchToken = async (url: string, options: RequestInit = {}) => {
-  const token = localStorage.getItem("authToken");
+  try {
+    const session = await getSession();
+    let token = session?.accessToken;
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options.headers as Record<string, string>),
-  };
+    // Check if token is expired
+    if (token && isTokenExpired(token)) {
+      console.log("Token expired, attempting refresh...");
+      const newSession = await refreshToken();
+      token = newSession?.accessToken;
+    }
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(options.headers as Record<string, string>),
+    };
 
-  // Use /api/django instead of /api/auth to avoid NextAuth.js conflict
-  const response = await fetch(`/api/django${url}`, {
-    ...options,
-    headers,
-  });
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`HTTP ${response.status} error for ${url}:`, errorText);
-    throw new Error(
-      `HTTP error! status: ${response.status}, message: ${errorText}`
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_AUTH_BASE_URL}${url}`,
+      {
+        ...options,
+        headers,
+      }
     );
-  }
 
-  return response.json();
+    // If still unauthorized after refresh, throw error
+    if (response.status === 401) {
+      throw new Error("Authentication failed after token refresh");
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`HTTP ${response.status} error for ${url}:`, errorText);
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error(`Fetch error for ${url}:`, error);
+    throw error;
+  }
 };
+
+// Helper function to check if token is expired
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const exp = payload.exp * 1000; // Convert to milliseconds
+    return Date.now() >= exp;
+  } catch {
+    return true;
+  }
+}
+
+const authFetchFormData = async (
+  url: string,
+  options: RequestInit = {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> => {
+  try {
+    const session = await getSession();
+    let token = session?.accessToken;
+
+    // Check if token is expired
+    if (token && isTokenExpired(token)) {
+      console.log("Token expired, attempting refresh...");
+      const newSession = await refreshToken();
+      token = newSession?.accessToken;
+    }
+
+    const headers: Record<string, string> = {
+      // Don't set Content-Type for FormData - browser will set it with boundary
+      ...(options.headers as Record<string, string>),
+    };
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_AUTH_BASE_URL}${url}`,
+      {
+        ...options,
+        headers,
+      }
+    );
+
+    // If still unauthorized after refresh, throw error
+    if (response.status === 401) {
+      throw new Error("Authentication failed after token refresh");
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`HTTP ${response.status} error for ${url}:`, errorText);
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error(`Fetch error for ${url}:`, error);
+    throw error;
+  }
+};
+
+// Then update uploadProfileImage to use authFetchFormData
+export const uploadProfileImage = async (
+  formData: FormData
+): Promise<{ imageUrl: string }> => {
+  return authFetchFormData("/profile/upload-image/", {
+    method: "POST",
+    body: formData,
+  });
+};
+// Function to refresh token
+async function refreshToken() {
+  try {
+    const session = await getSession();
+    const refreshToken = session?.refreshToken;
+
+    if (!refreshToken) {
+      throw new Error("No refresh token available");
+    }
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_AUTH_BASE_URL}/token/refresh/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refresh: refreshToken }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Token refresh failed");
+    }
+
+    const data = await response.json();
+
+    // Update the session with new tokens
+    // This depends on how you handle sessions in your app
+    // You might need to use signIn() or update() from next-auth
+
+    return {
+      accessToken: data.access,
+      refreshToken: refreshToken,
+    };
+  } catch (error) {
+    console.error("Token refresh failed:", error);
+    // Redirect to login or handle authentication failure
+    window.location.href = "/auth/login";
+    throw error;
+  }
+}
 
 // Public API endpoints (no authentication needed)
 export const api = {
@@ -163,21 +301,22 @@ export const api = {
     getById: (id: number): Promise<SkillCategory> =>
       authFetch(`/profile/skill-categories/${id}/`),
   },
+  // lib/api.ts
   profile: {
-    get: (): Promise<UserProfile> => authFetch("/profile/"),
-    update: async (data: UserProfile): Promise<UserProfile> => {
+    get: (): Promise<UserProfile> => authFetchToken("/profile/"),
+    update: async (data: Partial<UserProfile>): Promise<UserProfile> => {
       return authFetchToken("/profile/update/", {
-        method: "POST",
+        method: "PATCH",
         body: JSON.stringify(data),
       });
     },
+    uploadImage: uploadProfileImage,
   },
-
   about: {
     get: (): Promise<About> => publicFetch("/about/"),
   },
   projects: {
-    get: (): Promise<Project[]> => publicFetch("/projects/"),
+    get: (): Promise<Project[]> => publicFetch("/api/projects/"),
     create: async (data: Project): Promise<Project> => {
       const response = await fetch("/api/projects/", {
         method: "POST",

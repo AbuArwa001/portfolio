@@ -15,6 +15,8 @@ from .serializers import (
     UserRegistrationSerializer,
     CertificationSerializer,
 )
+import os
+from datetime import datetime
 
 User = get_user_model()
 
@@ -36,19 +38,88 @@ def get_current_user(request):
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
 
-@api_view(['POST'])
+# users/views.py
+@api_view(['POST', 'PATCH', 'PUT'])
 @permission_classes([IsAuthenticated])
 def update_profile(request):
+    print(f"Request user: {request.user}")
+    print(f"Request data: {request.data}")
+    print(f"Request method: {request.method}")
+    
     try:
         profile = request.user.profile
     except UserProfile.DoesNotExist:
         profile = UserProfile.objects.create(user=request.user)
     
+    # Use the serializer
     serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+    
     if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer.save()
+            print("Serializer save successful")
+            return Response(serializer.data)
+        except Exception as e:
+            print(f"Error during save: {e}")
+            return Response({'error': str(e)}, status=400)
+    
+    print("Serializer errors:", serializer.errors)
+    return Response(serializer.errors, status=400)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_profile_image(request):
+    try:
+        profile = request.user.profile
+    except UserProfile.DoesNotExist:
+        profile = UserProfile.objects.create(user=request.user)
+    
+    # Check if file is provided
+    if 'profile_image' not in request.FILES:
+        return Response({'error': 'No image file provided'}, status=400)
+    
+    uploaded_file = request.FILES['profile_image']
+    
+    # Validate file type
+    allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if uploaded_file.content_type not in allowed_types:
+        return Response({'error': 'Invalid file type. Only images are allowed.'}, status=400)
+    
+    # Validate file size (max 5MB)
+    if uploaded_file.size > 5 * 1024 * 1024:
+        return Response({'error': 'File too large. Maximum size is 5MB.'}, status=400)
+    
+    try:
+        # Generate unique filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        file_extension = os.path.splitext(uploaded_file.name)[1]
+        filename = f"profile_images/user_{request.user.id}_{timestamp}{file_extension}"
+        
+        # Delete old profile image if it exists
+        if profile.profile_image:
+            try:
+                if os.path.isfile(profile.profile_image.path):
+                    os.remove(profile.profile_image.path)
+            except (ValueError, OSError):
+                # If the file doesn't exist or other issues, just continue
+                pass
+        
+        # Save new image
+        profile.profile_image = uploaded_file
+        profile.save()
+        
+        # Return the image URL
+        image_url = profile.profile_image.url
+        
+        return Response({
+            'message': 'Profile image uploaded successfully',
+            'imageUrl': image_url
+        })
+        
+    except Exception as e:
+        return Response({'error': f'Error uploading image: {str(e)}'}, status=500)
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

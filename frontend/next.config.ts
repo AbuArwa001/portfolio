@@ -51,24 +51,14 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   outputFileTracingRoot: __dirname,
-
-  // ADD THIS SECTION for API rewrites
-  async rewrites() {
-    // const isDevelopment = process.env.NODE_ENV === "development";
-    const djangoBaseURL =
-      process.env.DJANGO_BASE_URL || "http://localhost:8000";
-
-    return [
-      {
-        source: "/api/django/:path*",
-        destination: `${djangoBaseURL}/api/:path*`,
-      },
-      {
-        source: "/api/auth/:path*",
-        destination: "/api/auth/:path*",
-      },
-    ];
-  },
 };
 
 module.exports = nextConfig;
+
+// import type { NextConfig } from "next";
+
+// const nextConfig: NextConfig = {
+//   /* config options here */
+// };
+
+// export default nextConfig;

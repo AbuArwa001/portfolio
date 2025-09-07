@@ -32,7 +32,7 @@ SECRET_KEY = "django-insecure-rq_)-=g_%8s18br-@h%koxc^dr^mt0muk^ml)lu!gz+-x=(1mz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 CORS_ALLOW_ALL_ORIGINS = True
-ALLOWED_HOSTS = ["*", "https://portfolio-3ke7.onrender.com"]
+ALLOWED_HOSTS = ["*", "portfolio-3ke7.onrender.com"]
 
 
 # Application definition
@@ -88,16 +88,26 @@ WSGI_APPLICATION = "backend.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-DATABASES = {
-    'default': dj_database_url.parse(os.environ.get('DATABASE_URL'),conn_max_age=600)
-}
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
 
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    # For production (PostgreSQL on Render)
+    db_config = dj_database_url.parse(DATABASE_URL)
+    db_config['OPTIONS'] = {
+        'sslmode': 'require',
+    }
+    DATABASES = {
+        'default': db_config
+    }
+else:
+    # For development (SQLite fallback)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

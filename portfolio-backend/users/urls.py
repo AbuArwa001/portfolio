@@ -9,6 +9,7 @@ urlpatterns = [
     path('me/', views.get_current_user, name='current-user'),
     path('profile/update/', views.update_profile, name='update-profile'),
     path('profile/', views.get_profile, name='get-profile'),
+    path('profile/upload-image/', views.upload_profile_image, name='upload-profile-image'),
     path('profile/skills/', views.manage_skills, name='manage_skills'),
     path('profile/skill-categories/', views.manage_skill_categories, name='manage_skill_categories'),
     path('profile/skill-categories/<int:category_id>/', views.manage_skill_categories, name='manage_skill_categories_with_id'),
@@ -24,3 +25,4 @@ urlpatterns = [
     path('profile/bulk/certifications/', views.bulk_update_certifications, name='bulk_update_certifications'),
     path('profile/bulk/languages/', views.bulk_update_languages, name='bulk_update_languages'),
 ]
+
