@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { JSX } from "react";
 import {
   FaReact,
   FaNodeJs,
