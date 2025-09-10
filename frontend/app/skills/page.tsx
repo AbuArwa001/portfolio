@@ -8,6 +8,39 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import {
+  FaReact,
+  FaNodeJs,
+  FaAws,
+  FaPython,
+  FaDocker,
+} from "react-icons/fa";
+import {
+  SiNextdotjs,
+  SiTypescript,
+  SiTailwindcss,
+  SiExpress,
+  SiPandas,
+} from "react-icons/si";
+
+// Skill icon map
+const skillIcons: Record<string, JSX.Element> = {
+  React: <FaReact className="text-blue-500" />,
+  "Next.js": <SiNextdotjs className="text-black dark:text-white" />,
+  TypeScript: <SiTypescript className="text-blue-600" />,
+  "Tailwind CSS": <SiTailwindcss className="text-cyan-500" />,
+  "Node.js": <FaNodeJs className="text-green-600" />,
+  Express: <SiExpress className="text-gray-700 dark:text-gray-300" />,
+  Python: <FaPython className="text-yellow-500" />,
+  "REST APIs": <FaNodeJs className="text-orange-500" />,
+  AWS: <FaAws className="text-orange-400" />,
+  Docker: <FaDocker className="text-blue-400" />,
+  "Load Balancing": <FaAws className="text-gray-500" />,
+  "Server Architecture": <FaAws className="text-gray-500" />,
+  Pandas: <SiPandas className="text-black dark:text-white" />,
+  "Data Visualization": <FaPython className="text-teal-600" />,
+  "Statistical Analysis": <FaPython className="text-purple-500" />,
+};
 
 const skillsData = [
   {
@@ -50,12 +83,11 @@ const skillsData = [
 
 export default function SkillsPage() {
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Skills & Technologies</h1>
-        <p className="text-muted-foreground">
-          A comprehensive overview of my technical skills and proficiency
-          levels.
+    <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div className="mb-10 text-center">
+        <h1 className="text-4xl font-bold mb-2">🚀 Skills & Technologies</h1>
+        <p className="text-muted-foreground text-lg">
+          A visual overview of my current stack and learning journey.
         </p>
       </div>
 
@@ -63,9 +95,11 @@ export default function SkillsPage() {
         {skillsData.map((category) => (
           <Card key={category.category}>
             <CardHeader>
-              <CardTitle>{category.category}</CardTitle>
+              <CardTitle className="text-xl flex items-center gap-2">
+                📂 {category.category}
+              </CardTitle>
               <CardDescription>
-                Proficiency in {category.category.toLowerCase()} technologies
+                Proficiency in {category.category.toLowerCase()} tools
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -73,7 +107,12 @@ export default function SkillsPage() {
                 {category.skills.map((skill) => (
                   <div key={skill.name}>
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm font-medium">{skill.name}</span>
+                      <div className="flex items-center gap-2">
+                        {skillIcons[skill.name] && (
+                          <span className="text-xl">{skillIcons[skill.name]}</span>
+                        )}
+                        <span className="text-sm font-medium">{skill.name}</span>
+                      </div>
                       <span className="text-xs text-muted-foreground">
                         {skill.level}%
                       </span>
@@ -87,11 +126,11 @@ export default function SkillsPage() {
         ))}
       </div>
 
-      <Card className="mt-6">
+      <Card className="mt-10">
         <CardHeader>
-          <CardTitle>Certification Progress</CardTitle>
+          <CardTitle className="text-xl">🎓 Certification Progress</CardTitle>
           <CardDescription>
-            Current progress on professional certifications
+            Currently pursuing industry certifications.
           </CardDescription>
         </CardHeader>
         <CardContent>
