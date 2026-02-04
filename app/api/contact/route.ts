@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import ContactFormEmail from "@/emails/contact-form";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: NextRequest) {
   try {
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+        console.warn("RESEND_API_KEY is not set. Email sending will be skipped.");
+        return NextResponse.json(
+            { error: "Email service not configured" },
+            { status: 503 }
+        );
+    }
+    const resend = new Resend(resendApiKey);
+
     const formData = await request.formData();
 
     const name = formData.get("name") as string;
