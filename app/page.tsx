@@ -151,7 +151,6 @@ export default function LandingPage() {
           </div>
 
           <motion.div
-            img-loader
             variants={container}
             initial="hidden"
             whileInView="show"

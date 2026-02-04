@@ -306,7 +306,7 @@ export const api = {
     get: (): Promise<UserProfile> => authFetchToken("/profile/"),
     update: async (data: Partial<UserProfile>): Promise<UserProfile> => {
       return authFetchToken("/profile/update/", {
-        method: "PATCH",
+        method: "POST",
         body: JSON.stringify(data),
       });
     },

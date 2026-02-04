@@ -1,7 +1,5 @@
 "use client";
-import { SearchButton } from "@/components/search-button";
 import * as React from "react";
-import { searchData } from "@/data";
 import {
   IconActivity,
   IconBriefcase,
@@ -11,8 +9,6 @@ import {
   IconListDetails,
   IconMail,
   IconReport,
-  IconSearch,
-  IconSettings,
   IconUser,
   IconMoon,
   IconSun,
@@ -135,15 +131,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
-  };
-
-  const handleQuickCreate = () => {
-    setShowCreateModal(true);
-  };
-
-  const handleInbox = () => {
-    // Redirect to messages/contact management
-    window.location.href = "/admin/messages";
   };
 
   if (isLoading) {
