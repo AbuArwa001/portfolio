@@ -19,7 +19,7 @@ export const publicFetch = async <T>(
   options: RequestInit = {}
 ): Promise<T> => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`,
+    `${process.env.NEXT_PUBLIC_API_BASE_URL || ""}${url}`,
     {
       ...options,
       headers: {
@@ -40,7 +40,7 @@ export const authFetch = async <T>(
   options: RequestInit = {}
 ): Promise<T> => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_AUTH_BASE_URL}${url}`,
+    `${process.env.NEXT_PUBLIC_API_AUTH_BASE_URL || ""}${url}`,
     {
       ...options,
       headers: {
@@ -78,7 +78,7 @@ const authFetchToken = async (url: string, options: RequestInit = {}) => {
     }
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_AUTH_BASE_URL}${url}`,
+      `${process.env.NEXT_PUBLIC_API_AUTH_BASE_URL || ""}${url}`,
       {
         ...options,
         headers,
@@ -142,7 +142,7 @@ const authFetchFormData = async (
     }
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_AUTH_BASE_URL}${url}`,
+      `${process.env.NEXT_PUBLIC_API_AUTH_BASE_URL || ""}${url}`,
       {
         ...options,
         headers,
@@ -189,7 +189,7 @@ async function refreshToken() {
     }
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_AUTH_BASE_URL}/token/refresh/`,
+      `${process.env.NEXT_PUBLIC_API_AUTH_BASE_URL || ""}/token/refresh/`,
       {
         method: "POST",
         headers: {
