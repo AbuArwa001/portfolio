@@ -33,7 +33,7 @@ const authOptions: AuthOptions = {
         try {
           // Step 1: Get JWT tokens from Django
           const tokenResponse = await fetch(
-            "http://localhost:8000/api/auth/login/",
+            "http://localhost:8000/api/v1/auth/login/",
             {
               method: "POST",
               headers: {
@@ -55,7 +55,7 @@ const authOptions: AuthOptions = {
 
           // Step 2: Get user data using the access token
           const userResponse = await fetch(
-            "http://localhost:8000/api/auth/me/",
+            "http://localhost:8000/api/v1/auth/me/",
             {
               method: "GET",
               headers: {
