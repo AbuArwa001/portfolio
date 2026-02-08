@@ -224,7 +224,7 @@ async function refreshToken() {
 // Public API endpoints (no authentication needed)
 export const api = {
   me: {
-    get: (): Promise<Me> => publicFetch("/me/"),
+    get: (): Promise<Me> => publicFetch("/auth/me/"),
   },
   skills: {
     get: (): Promise<Skill[]> => authFetch("/profile/skills/"),
@@ -316,7 +316,7 @@ export const api = {
     get: (): Promise<About> => publicFetch("/about/"),
   },
   projects: {
-    get: (): Promise<Project[]> => publicFetch("/api/projects/"),
+    get: (): Promise<Project[]> => publicFetch("/projects/"),
     create: async (data: Project): Promise<Project> => {
       const response = await fetch("/api/projects/", {
         method: "POST",
