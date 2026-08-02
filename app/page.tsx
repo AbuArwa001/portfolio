@@ -2,53 +2,25 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
-  Code,
+  Terminal,
   Database,
-  Layout,
   Server,
+  Network,
   Github,
   Linkedin,
   Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
-import { Project } from "@/types";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 export default function LandingPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
-
-  useEffect(() => {
-    async function loadProjects() {
-      try {
-        const data = await api.projects.get();
-        // Take top 3 projects
-        setProjects(data.slice(0, 3));
-      } catch (e) {
-        console.error("Failed to load projects", e);
-      }
-    }
-    loadProjects();
-  }, []);
-
   const container = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
+      transition: { staggerChildren: 0.1 },
     },
   };
 
@@ -58,47 +30,49 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="flex flex-col min-h-screen bg-background relative selection:bg-primary/30">
+      {/* Background glowing effects */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] opacity-20 dark:opacity-30 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/50 to-blue-500/50 blur-[100px] rounded-full mix-blend-screen" />
+      </div>
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-32 pb-20 lg:pt-48 lg:pb-32">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 -z-10" />
-        <div className="container px-4 mx-auto text-center">
+      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        <div className="container px-4 mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="max-w-3xl mx-auto space-y-6"
+            className="max-w-4xl mx-auto"
           >
-            <div className="inline-block px-3 py-1 text-sm font-medium text-blue-600 bg-blue-100 rounded-full dark:text-blue-400 dark:bg-blue-900/30">
-              Full Stack Developer
+            <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 text-sm font-medium text-primary bg-primary/10 rounded-full border border-primary/20">
+              <Network className="w-4 h-4" />
+              <span>Network Engineer & Full-Stack Developer</span>
             </div>
-            <h1 className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl lg:text-7xl">
-              Building Digital{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-                Masterpieces
+            
+            <h1 className="text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl lg:text-7xl mb-6">
+              Architecting{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-500">
+                Robust Infrastructure
               </span>
+              <br /> & Scalable Web Apps
             </h1>
-            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-              Hi, I'm Khalfan Athman. I craft robust and scalable web
-              applications with modern technologies. Specializing in Python
-              (Django) and TypeScript (Next.js).
+            
+            <p className="text-xl text-muted-foreground max-w-2xl mb-10 leading-relaxed">
+              I bring 6+ years of network engineering discipline to full-stack development. 
+              Specializing in Django REST Framework and high-performance Next.js frontends, 
+              I build solutions that don't just look premium—they scale flawlessly.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-              <Link href="/contact">
-                <Button
-                  size="lg"
-                  className="w-full sm:w-auto text-lg h-12 px-8 bg-blue-600 hover:bg-blue-700"
-                >
-                  Get in Touch <ArrowRight className="ml-2 h-5 w-5" />
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link href="/projects">
+                <Button size="lg" className="w-full sm:w-auto h-12 px-8 text-base">
+                  View Case Studies <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="#projects">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full sm:w-auto text-lg h-12 px-8"
-                >
-                  View Work
+              <Link href="/contact">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto h-12 px-8 text-base bg-background/50 backdrop-blur-sm border-border">
+                  Get in Touch
                 </Button>
               </Link>
             </div>
@@ -106,47 +80,44 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Tech Stack Preview */}
-      <section className="py-12 border-y border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50">
+      {/* Tech Stack Bento */}
+      <section className="py-20 border-y border-border/50 bg-muted/30 relative">
         <div className="container px-4 mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-            <div className="flex items-center justify-center gap-2">
-              <Layout className="h-8 w-8 text-blue-500" />
-              <span className="text-xl font-bold text-slate-700 dark:text-slate-300">
-                Next.js
-              </span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            <div className="flex flex-col items-center justify-center p-6 bg-card border border-border/50 rounded-2xl hover:border-primary/50 transition-colors shadow-sm">
+              <Terminal className="h-8 w-8 text-primary mb-3" />
+              <span className="font-bold text-foreground">Next.js & React</span>
+              <span className="text-sm text-muted-foreground mt-1">Frontend</span>
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <Database className="h-8 w-8 text-green-500" />
-              <span className="text-xl font-bold text-slate-700 dark:text-slate-300">
-                Django
-              </span>
+            <div className="flex flex-col items-center justify-center p-6 bg-card border border-border/50 rounded-2xl hover:border-primary/50 transition-colors shadow-sm">
+              <Database className="h-8 w-8 text-blue-500 mb-3" />
+              <span className="font-bold text-foreground">Django & DRF</span>
+              <span className="text-sm text-muted-foreground mt-1">Backend API</span>
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <Code className="h-8 w-8 text-yellow-500" />
-              <span className="text-xl font-bold text-slate-700 dark:text-slate-300">
-                Python
-              </span>
+            <div className="flex flex-col items-center justify-center p-6 bg-card border border-border/50 rounded-2xl hover:border-primary/50 transition-colors shadow-sm">
+              <Server className="h-8 w-8 text-green-500 mb-3" />
+              <span className="font-bold text-foreground">Linux & C</span>
+              <span className="text-sm text-muted-foreground mt-1">Systems</span>
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <Server className="h-8 w-8 text-purple-500" />
-              <span className="text-xl font-bold text-slate-700 dark:text-slate-300">
-                PostgreSQL
-              </span>
+            <div className="flex flex-col items-center justify-center p-6 bg-card border border-border/50 rounded-2xl hover:border-primary/50 transition-colors shadow-sm">
+              <Network className="h-8 w-8 text-purple-500 mb-3" />
+              <span className="font-bold text-foreground">Networking</span>
+              <span className="text-sm text-muted-foreground mt-1">Infrastructure</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Projects */}
-      <section id="projects" className="py-24 bg-slate-50 dark:bg-slate-950">
+      {/* Featured Projects Teaser */}
+      <section className="py-32 relative">
         <div className="container px-4 mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white sm:text-4xl">
-              Featured Projects
+          <div className="max-w-3xl mb-16">
+            <h2 className="text-3xl font-bold text-foreground sm:text-4xl mb-4">
+              Proven Engineering
             </h2>
-            <p className="mt-4 text-lg text-slate-600 dark:text-slate-400">
-              A selection of my recent work
+            <p className="text-lg text-muted-foreground">
+              From high-traffic portals to complex admin dashboards, I deliver production-ready 
+              systems designed for real-world impact.
             </p>
           </div>
 
@@ -155,149 +126,97 @@ export default function LandingPage() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 gap-8"
           >
-            {projects.length > 0
-              ? projects.map((project) => (
-                  <motion.div key={project.id} variants={item}>
-                    <Card className="h-full flex flex-col hover:shadow-xl transition-shadow duration-300 border-none shadow-md overflow-hidden bg-white dark:bg-slate-900">
-                      <div className="h-48 bg-slate-200 dark:bg-slate-800 relative group">
-                        {/* Placeholder for project image if you had one */}
-                        <div className="absolute inset-0 flex items-center justify-center text-slate-400">
-                          <Code className="h-12 w-12 opacity-20" />
-                        </div>
-                        <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/10 transition-colors duration-300" />
-                      </div>
-                      <CardHeader>
-                        <div className="flex justify-between items-start mb-2">
-                          <Badge
-                            variant="secondary"
-                            className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                          >
-                            {project.type}
-                          </Badge>
-                          <Badge
-                            variant={
-                              project.status === "Completed"
-                                ? "default"
-                                : "outline"
-                            }
-                            className={
-                              project.status === "Completed"
-                                ? "bg-green-600"
-                                : ""
-                            }
-                          >
-                            {project.status}
-                          </Badge>
-                        </div>
-                        <CardTitle className="text-xl line-clamp-1">
-                          {project.name}
-                        </CardTitle>
-                        <CardDescription className="line-clamp-2">
-                          {project.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex-grow">
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {project.technologies
-                            .split(",")
-                            .slice(0, 3)
-                            .map((tech, i) => (
-                              <span
-                                key={i}
-                                className="text-xs font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-slate-600 dark:text-slate-400"
-                              >
-                                {tech.trim()}
-                              </span>
-                            ))}
-                          {project.technologies.split(",").length > 3 && (
-                            <span className="text-xs px-2 py-1 text-slate-500">
-                              +{project.technologies.split(",").length - 3}
-                            </span>
-                          )}
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button asChild className="w-full">
-                          <Link href={project.link || "#"} target="_blank">
-                            View Project
-                          </Link>
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                ))
-              : // Skeleton Loading or Empty State
-                [1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="h-96 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse"
-                  />
-                ))}
-          </motion.div>
-
-          <div className="text-center mt-12">
-            <Link href="/projects">
-              <Button variant="outline" size="lg" className="gap-2">
-                View All Projects <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section className="py-24 bg-white dark:bg-slate-900">
-        <div className="container px-4 mx-auto">
-          <div className="flex flex-col lg:flex-row items-center gap-12">
-            <div className="lg:w-1/2">
-              <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl opacity-20 blur-lg transform rotate-2"></div>
-                <div className="relative h-[400px] w-full rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
-                  {/* Placeholder for Profile Pic */}
-                  <span className="text-4xl">👨‍💻</span>
-                  {/* You should replace this with <Image src={...} /> later */}
+            {/* Project 1 - In Progress */}
+            <motion.div variants={item} className="group relative rounded-3xl border border-border/50 bg-card overflow-hidden hover:border-primary/50 transition-colors shadow-sm">
+              <div className="aspect-video bg-muted relative overflow-hidden">
+                <Image 
+                  src="/jamiaGive_admin_dashboard/dashboard.png" 
+                  alt="jamiaGive Admin Dashboard" 
+                  fill 
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
+                <div className="absolute top-4 right-4">
+                  <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 bg-yellow-500/20 text-yellow-500 rounded-full border border-yellow-500/20 backdrop-blur-sm">
+                    In Progress
+                  </span>
                 </div>
               </div>
-            </div>
-            <div className="lg:w-1/2 space-y-6">
-              <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
-                About Me
-              </h2>
-              <p className="text-lg text-slate-600 dark:text-slate-300">
-                I am a passionate software engineer with a deep interest in
-                building scalable web applications. My journey began with a
-                curiosity for how things work, leading me to master the full
-                stack of web development.
-              </p>
-              <p className="text-lg text-slate-600 dark:text-slate-300">
-                When I'm not coding, you can find me exploring new technologies,
-                contributing to open source, or sharing knowledge with the
-                community.
-              </p>
-              <div className="flex gap-4 pt-4">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Github className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Linkedin className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Mail className="h-5 w-5" />
-                </Button>
+              <div className="p-8">
+                <div className="flex gap-2 mb-4">
+                  <span className="text-xs font-mono px-2 py-1 bg-primary/10 text-primary rounded-md border border-primary/20">Next.js</span>
+                  <span className="text-xs font-mono px-2 py-1 bg-primary/10 text-primary rounded-md border border-primary/20">DRF</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-2">jamiaGive Admin Dashboard</h3>
+                <p className="text-muted-foreground mb-6 line-clamp-2">
+                  Building a robust administrative dashboard for managing donations and accounts. Features real-time tracking, structured categories, and secure transfers via a decoupled DRF backend.
+                </p>
+                <Link href="/projects" className="inline-flex items-center text-primary font-medium hover:underline">
+                  Read Case Study <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </div>
-            </div>
+            </motion.div>
+
+            {/* Project 2 */}
+            <motion.div variants={item} className="group relative rounded-3xl border border-border/50 bg-card overflow-hidden hover:border-primary/50 transition-colors shadow-sm">
+              <div className="aspect-video bg-muted relative overflow-hidden">
+                <Image 
+                  src="/SUPKEM/Home_hero.png" 
+                  alt="SUPKEM Platform" 
+                  fill 
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
+                <div className="absolute top-4 right-4">
+                  <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 bg-green-500/20 text-green-500 rounded-full border border-green-500/20 backdrop-blur-sm">
+                    Live
+                  </span>
+                </div>
+              </div>
+              <div className="p-8">
+                <div className="flex gap-2 mb-4">
+                  <span className="text-xs font-mono px-2 py-1 bg-blue-500/10 text-blue-500 rounded-md border border-blue-500/20">Next.js</span>
+                  <span className="text-xs font-mono px-2 py-1 bg-blue-500/10 text-blue-500 rounded-md border border-blue-500/20">PostgreSQL</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-2">SUPKEM News & Admin</h3>
+                <p className="text-muted-foreground mb-6 line-clamp-2">
+                  Developed a comprehensive digital presence for SUPKEM featuring a dynamic news engine and a secure administrative dashboard for nationwide event management.
+                </p>
+                <Link href="/projects" className="inline-flex items-center text-blue-500 font-medium hover:underline">
+                  Read Case Study <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
+            </motion.div>
+          </motion.div>
+          
+          <div className="mt-12 text-center">
+             <Link href="/projects">
+                <Button variant="outline" size="lg" className="h-12 px-8">
+                  View All Work
+                </Button>
+             </Link>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 bg-slate-950 text-slate-400 border-t border-slate-900">
-        <div className="container px-4 mx-auto text-center">
-          <p>
-            &copy; {new Date().getFullYear()} Khalfan Athman. All rights
-            reserved.
+      {/* Footer minimal */}
+      <footer className="py-12 border-t border-border/50 bg-card text-muted-foreground text-center">
+        <div className="container px-4 mx-auto flex flex-col items-center">
+          <div className="flex gap-6 mb-6">
+            <Link href="https://github.com/AbuArwa001" target="_blank" className="hover:text-primary transition-colors">
+              <Github className="h-6 w-6" />
+            </Link>
+            <Link href="https://www.linkedin.com/in/khalfaniathman" target="_blank" className="hover:text-primary transition-colors">
+              <Linkedin className="h-6 w-6" />
+            </Link>
+            <Link href="mailto:khalfan@khalfanathman.dev" className="hover:text-primary transition-colors">
+              <Mail className="h-6 w-6" />
+            </Link>
+          </div>
+          <p className="text-sm">
+            &copy; {new Date().getFullYear()} Khalfan Athman. Built with Next.js & Django.
           </p>
         </div>
       </footer>
