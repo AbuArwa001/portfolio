@@ -33,7 +33,11 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen bg-background relative selection:bg-primary/30">
       {/* Background glowing effects */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] opacity-20 dark:opacity-30 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/50 to-blue-500/50 blur-[100px] rounded-full mix-blend-screen" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/50 to-blue-500/50 blur-[100px] rounded-full mix-blend-screen animate-pulse-glow" />
+      </div>
+      {/* Floating orb accent */}
+      <div className="absolute top-40 right-10 lg:right-32 w-64 h-64 opacity-10 dark:opacity-15 pointer-events-none animate-float hidden lg:block">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-blue-600 blur-2xl" />
       </div>
 
       {/* Hero Section */}
@@ -83,28 +87,39 @@ export default function LandingPage() {
       {/* Tech Stack Bento */}
       <section className="py-20 border-y border-border/50 bg-muted/30 relative">
         <div className="container px-4 mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-            <div className="flex flex-col items-center justify-center p-6 bg-card border border-border/50 rounded-2xl hover:border-primary/50 transition-colors shadow-sm">
-              <Terminal className="h-8 w-8 text-primary mb-3" />
-              <span className="font-bold text-foreground">Next.js & React</span>
-              <span className="text-sm text-muted-foreground mt-1">Frontend</span>
-            </div>
-            <div className="flex flex-col items-center justify-center p-6 bg-card border border-border/50 rounded-2xl hover:border-primary/50 transition-colors shadow-sm">
-              <Database className="h-8 w-8 text-blue-500 mb-3" />
-              <span className="font-bold text-foreground">Django & DRF</span>
-              <span className="text-sm text-muted-foreground mt-1">Backend API</span>
-            </div>
-            <div className="flex flex-col items-center justify-center p-6 bg-card border border-border/50 rounded-2xl hover:border-primary/50 transition-colors shadow-sm">
-              <Server className="h-8 w-8 text-green-500 mb-3" />
-              <span className="font-bold text-foreground">Linux & C</span>
-              <span className="text-sm text-muted-foreground mt-1">Systems</span>
-            </div>
-            <div className="flex flex-col items-center justify-center p-6 bg-card border border-border/50 rounded-2xl hover:border-primary/50 transition-colors shadow-sm">
-              <Network className="h-8 w-8 text-purple-500 mb-3" />
-              <span className="font-bold text-foreground">Networking</span>
-              <span className="text-sm text-muted-foreground mt-1">Infrastructure</span>
-            </div>
-          </div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-8"
+          >
+            Core Technology Stack
+          </motion.p>
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto"
+          >
+            {[
+              { icon: <Terminal className="h-8 w-8 text-primary" />, label: "Next.js & React", sub: "Frontend" },
+              { icon: <Database className="h-8 w-8 text-blue-500" />, label: "Django & DRF", sub: "Backend API" },
+              { icon: <Server className="h-8 w-8 text-emerald-500" />, label: "Linux & C", sub: "Systems" },
+              { icon: <Network className="h-8 w-8 text-purple-400" />, label: "Networking", sub: "Infrastructure" },
+            ].map((t) => (
+              <motion.div
+                key={t.label}
+                variants={item}
+                whileHover={{ y: -4, scale: 1.02 }}
+                className="flex flex-col items-center justify-center p-6 bg-card border border-border/50 rounded-2xl hover:border-primary/50 hover:shadow-[0_0_24px_-8px] hover:shadow-primary/30 transition-all duration-300 cursor-default"
+              >
+                <div className="mb-3">{t.icon}</div>
+                <span className="font-bold text-foreground text-sm">{t.label}</span>
+                <span className="text-xs text-muted-foreground mt-1">{t.sub}</span>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
@@ -201,23 +216,35 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer minimal */}
-      <footer className="py-12 border-t border-border/50 bg-card text-muted-foreground text-center">
-        <div className="container px-4 mx-auto flex flex-col items-center">
-          <div className="flex gap-6 mb-6">
-            <Link href="https://github.com/AbuArwa001" target="_blank" className="hover:text-primary transition-colors">
-              <Github className="h-6 w-6" />
-            </Link>
-            <Link href="https://www.linkedin.com/in/khalfaniathman" target="_blank" className="hover:text-primary transition-colors">
-              <Linkedin className="h-6 w-6" />
-            </Link>
-            <Link href="mailto:khalfan@khalfanathman.dev" className="hover:text-primary transition-colors">
-              <Mail className="h-6 w-6" />
-            </Link>
+      {/* Footer */}
+      <footer className="py-16 border-t border-border/50 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/3 to-transparent pointer-events-none" />
+        <div className="container px-4 mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground font-extrabold text-sm flex items-center justify-center">
+                KA
+              </div>
+              <div>
+                <p className="font-bold text-foreground font-heading">Khalfan Athman</p>
+                <p className="text-xs text-muted-foreground">Network Engineer · Full-Stack Developer</p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <Link href="https://github.com/AbuArwa001" target="_blank" className="p-2.5 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                <Github className="h-5 w-5" />
+              </Link>
+              <Link href="https://www.linkedin.com/in/khalfaniathman" target="_blank" className="p-2.5 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                <Linkedin className="h-5 w-5" />
+              </Link>
+              <Link href="mailto:khalfan@khalfanathman.dev" className="p-2.5 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                <Mail className="h-5 w-5" />
+              </Link>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              &copy; {new Date().getFullYear()} · Built with Next.js & Django
+            </p>
           </div>
-          <p className="text-sm">
-            &copy; {new Date().getFullYear()} Khalfan Athman. Built with Next.js & Django.
-          </p>
         </div>
       </footer>
     </div>

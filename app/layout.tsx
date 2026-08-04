@@ -2,11 +2,9 @@ import type { Metadata } from "next";
 import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "./Providers";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
-import { SiteHeader } from "@/components/site-header";
-import { AdminPanel } from "@/components/AdminPanel";
+import NavBar from "./NavBar";
+import PageTransition from "./PageTransition";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,12 +22,29 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Portfolio - Khalfan Athman",
-  description: "Khalfan Athman portfolio to showcase skills and experience",
+  title: "Khalfan Athman — Network Engineer & Full-Stack Developer",
+  description:
+    "Senior Network Engineer with 6+ years of experience, specialising in Django REST Framework APIs and Next.js frontends. Based in Nairobi, Kenya.",
+  keywords: [
+    "Khalfan Athman",
+    "Network Engineer",
+    "Full Stack Developer",
+    "Django",
+    "Next.js",
+    "Nairobi",
+    "Kenya",
+  ],
+  authors: [{ name: "Khalfan Athman", url: "https://www.khalfanathman.dev" }],
+  openGraph: {
+    type: "website",
+    title: "Khalfan Athman — Network Engineer & Full-Stack Developer",
+    description:
+      "Senior Network Engineer specialising in Django REST Framework and Next.js. Building production systems that scale.",
+    siteName: "Khalfan Athman",
+  },
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon-16x16.png",
-    apple: "/apple-touch-icon.png",
   },
 };
 
@@ -47,25 +62,14 @@ export default function RootLayout({
         <Providers>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme="dark"
             enableSystem
             disableTransitionOnChange
           >
-            <SidebarProvider
-              style={
-                {
-                  "--sidebar-width": "calc(var(--spacing) * 72)",
-                  "--header-height": "calc(var(--spacing) * 12)",
-                } as React.CSSProperties
-              }
-            >
-              <AppSidebar variant="inset" />
-              <SidebarInset>
-                <SiteHeader />
-                {children}
-                <AdminPanel />
-              </SidebarInset>
-            </SidebarProvider>
+            <NavBar />
+            <PageTransition>
+              <main className="flex-1">{children}</main>
+            </PageTransition>
           </ThemeProvider>
         </Providers>
       </body>

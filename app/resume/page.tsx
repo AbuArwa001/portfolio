@@ -6,15 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Download,
-  Mail,
-  Linkedin,
-  Github,
-  Calendar,
-  MapPin,
-} from "lucide-react";
-import { downloadResume } from "@/lib/download";
+import { Download, Mail, Linkedin, Github, Calendar, MapPin, ExternalLink } from "lucide-react";
 
 // ✅ Section transition animations
 const sectionVariants = {
@@ -30,13 +22,8 @@ const ResumePage = () => {
   const [activeSection, setActiveSection] = useState("experience");
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleDownload = async () => {
-    setIsDownloading(true);
-    try {
-      await downloadResume();
-    } finally {
-      setIsDownloading(false);
-    }
+  const handleDownload = () => {
+    window.open("/cv/print", "_blank");
   };
 
   return (
@@ -49,24 +36,21 @@ const ResumePage = () => {
             A snapshot of my professional journey 🚀
           </p>
         </div>
-        <Button
-          onClick={handleDownload}
-          disabled={isDownloading}
-          className="gap-2 shadow-md"
-          size="lg"
-        >
-          {isDownloading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Downloading...
-            </>
-          ) : (
-            <>
-              <Download className="h-4 w-4" />
-              Download PDF
-            </>
-          )}
-        </Button>
+        <div className="flex gap-3">
+          <a
+            href="/cv/print"
+            target="_blank"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-border/60 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+          >
+            <ExternalLink className="h-4 w-4" /> Preview CV
+          </a>
+          <button
+            onClick={handleDownload}
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors shadow-[0_0_20px_-8px] shadow-primary/50"
+          >
+            <Download className="h-4 w-4" /> Download PDF
+          </button>
+        </div>
       </div>
 
       {/* ===== Layout ===== */}

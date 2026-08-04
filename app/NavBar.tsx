@@ -1,188 +1,182 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signIn, signOut } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Github, Linkedin, Network } from "lucide-react";
+
+const NAV_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/projects", label: "Projects" },
+  { href: "/resume", label: "Résumé" },
+  { href: "/blog", label: "Blog" },
+  { href: "/contact", label: "Contact" },
+];
 
 export default function NavBar() {
-  const { data: session, status } = useSession();
-  const [isScrolled, setIsScrolled] = useState(false);
+  const { data: session } = useSession();
+  const pathname = usePathname();
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { scrollY } = useScroll();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    setIsScrolled(latest > 50);
-  });
+  useMotionValueEvent(scrollY, "change", (v) => setScrolled(v > 40));
 
   return (
-    <motion.nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm"
-          : "bg-transparent"
-      }`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="container mx-auto px-4 h-16 flex justify-between items-center">
-        <div className="text-xl font-bold">
-          <Link
-            href="/"
-            className="text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-2"
-          >
-            <span className="bg-blue-600 text-white p-1 rounded-md">KA</span>
-            <span className="hidden sm:inline">Khalfan.Dev</span>
+    <>
+      <motion.nav
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          scrolled
+            ? "bg-background/80 backdrop-blur-xl border-b border-border/60 shadow-sm"
+            : "bg-transparent"
+        }`}
+      >
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="group flex items-center gap-2.5">
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary text-primary-foreground font-extrabold text-sm shadow-[0_0_20px_-5px] shadow-primary/60 group-hover:shadow-primary/80 transition-shadow">
+              KA
+            </div>
+            <span className="hidden sm:block font-bold text-foreground font-heading">
+              Khalfan<span className="text-primary">.Dev</span>
+            </span>
           </Link>
-        </div>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex space-x-8 items-center">
-          <Link
-            href="/"
-            className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-          >
-            Home
-          </Link>
-          <Link
-            href="/#projects"
-            className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-          >
-            Projects
-          </Link>
-          <Link
-            href="/blog"
-            className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-          >
-            Blog
-          </Link>
-          <Link
-            href="/contact"
-            className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-          >
-            Contact
-          </Link>
-        </div>
-
-        {/* Auth Buttons */}
-        <div className="hidden md:flex items-center space-x-4">
-          {status === "loading" ? (
-            <div className="w-24 h-9 bg-slate-200 dark:bg-slate-800 animate-pulse rounded-md"></div>
-          ) : session ? (
-            <div className="flex items-center space-x-4">
-              <Link href="/dashboard">
-                <Button
-                  variant="ghost"
-                  className="text-slate-700 dark:text-slate-300"
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-1">
+            {NAV_LINKS.map((link) => {
+              const active = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`relative px-4 py-2 text-sm font-medium rounded-xl transition-colors ${
+                    active
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  }`}
                 >
-                  Dashboard
-                </Button>
-              </Link>
-              <Button onClick={() => signOut()} variant="destructive" size="sm">
-                Sign Out
-              </Button>
-            </div>
-          ) : (
-            <div className="flex space-x-2">
-              <Button variant="ghost" onClick={() => signIn()}>
-                Sign In
-              </Button>
-              <Link href="/auth/signup">
-                <Button>Sign Up</Button>
-              </Link>
-            </div>
-          )}
-        </div>
+                  {active && (
+                    <motion.span
+                      layoutId="nav-pill"
+                      className="absolute inset-0 rounded-xl bg-primary/10 border border-primary/20"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10">{link.label}</span>
+                </Link>
+              );
+            })}
+          </div>
 
-        {/* Mobile Toggle */}
-        <div className="md:hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X /> : <Menu />}
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-4 space-y-4">
-          <Link
-            href="/"
-            className="block py-2"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Home
-          </Link>
-          <Link
-            href="/#projects"
-            className="block py-2"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Projects
-          </Link>
-          <Link
-            href="/blog"
-            className="block py-2"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Blog
-          </Link>
-          <Link
-            href="/contact"
-            className="block py-2"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Contact
-          </Link>
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
+          {/* Right side */}
+          <div className="hidden md:flex items-center gap-2">
+            <a
+              href="https://github.com/AbuArwa001"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+            >
+              <Github className="h-4 w-4" />
+            </a>
+            <a
+              href="https://www.linkedin.com/in/khalfaniathman"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+            >
+              <Linkedin className="h-4 w-4" />
+            </a>
             {session ? (
-              <>
+              <div className="flex items-center gap-2 ml-2">
                 <Link
                   href="/dashboard"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-sm font-medium px-4 py-2 rounded-xl border border-border/60 text-muted-foreground hover:text-foreground hover:border-border transition-colors"
                 >
-                  <Button className="w-full">Dashboard</Button>
+                  Dashboard
                 </Link>
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    signOut();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full"
+                <button
+                  onClick={() => signOut()}
+                  className="text-sm font-medium px-4 py-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
                 >
                   Sign Out
-                </Button>
-              </>
+                </button>
+              </div>
             ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    signIn();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full"
-                >
-                  Sign In
-                </Button>
-                <Link
-                  href="/auth/signup"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Button className="w-full">Sign Up</Button>
-                </Link>
-              </>
+              <Link
+                href="/contact"
+                className="ml-2 inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-[0_0_20px_-8px] shadow-primary/50"
+              >
+                Hire Me
+              </Link>
             )}
           </div>
+
+          {/* Mobile toggle */}
+          <button
+            className="md:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
-      )}
-    </motion.nav>
+      </motion.nav>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            key="mobile-menu"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/60 shadow-xl md:hidden"
+          >
+            <div className="container mx-auto px-4 py-6 flex flex-col gap-1">
+              {NAV_LINKS.map((link) => {
+                const active = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+              <div className="pt-4 mt-2 border-t border-border/40 flex gap-3">
+                <a
+                  href="https://github.com/AbuArwa001"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-border/60 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Github className="h-4 w-4" /> GitHub
+                </a>
+                <Link
+                  href="/contact"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold"
+                >
+                  Hire Me
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
