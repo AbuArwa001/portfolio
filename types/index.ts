@@ -23,11 +23,12 @@ export interface Skill {
 
 export interface Certification {
   id: number;
-  title: string;
+  name: string;
   issuer: string;
   date: string;
-  badge: string;
-  type: "aws" | "alx" | "other";
+  badge?: string;
+  credential_url?: string;
+  type: "aws" | "alx" | "oracle" | "badge" | "other";
   in_progress: boolean;
 }
 

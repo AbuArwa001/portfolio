@@ -89,15 +89,16 @@ export function AdminPanel() {
     category: 0,
   });
   const [certifications, setCertifications] = useState<Certification[]>([]);
-  const [newCertification, setNewCertification] = useState<Certification>({
-    id: 0,
-    title: "",
+  const [newCertification, setNewCertification] = useState<Omit<Certification, "id">>({ 
+    name: "",
     issuer: "",
     date: new Date().toISOString().split("T")[0],
     in_progress: false,
     badge: "",
+    credential_url: "",
     type: "other",
   });
+  const [editingCert, setEditingCert] = useState<Certification | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [newProject, setNewProject] = useState<Project>({
     id: 0,
@@ -257,10 +258,9 @@ export function AdminPanel() {
   };
 
   const handleAddCertification = async () => {
-    if (!newCertification.title || !newCertification.issuer) {
+    if (!newCertification.name || !newCertification.issuer) {
       toast.error("Missing information", {
-        description:
-          "Please enter both title and issuer for the certification.",
+        description: "Please enter both name and issuer for the certification.",
       });
       return;
     }
@@ -270,23 +270,38 @@ export function AdminPanel() {
       const response = await api.certifications.create(newCertification);
       setCertifications([...certifications, response]);
       setNewCertification({
-        id: 0,
-        title: "",
+        name: "",
         issuer: "",
         date: new Date().toISOString().split("T")[0],
         in_progress: false,
         badge: "",
+        credential_url: "",
         type: "other",
       });
       toast.success("Certification added", {
-        description: `${newCertification.title} has been added to your certifications.`,
+        description: `${newCertification.name} has been added.`,
       });
     } catch (error) {
       console.error("Error adding certification:", error);
       toast.error("Error adding certification", {
-        description:
-          "There was a problem adding your certification. Please try again.",
+        description: "There was a problem adding your certification. Please try again.",
       });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateCertification = async () => {
+    if (!editingCert) return;
+    try {
+      setIsLoading(true);
+      const response = await api.certifications.update(editingCert.id, editingCert);
+      setCertifications(certifications.map((c) => (c.id === editingCert.id ? response : c)));
+      setEditingCert(null);
+      toast.success("Certification updated");
+    } catch (error) {
+      console.error("Error updating certification:", error);
+      toast.error("Error updating certification");
     } finally {
       setIsLoading(false);
     }
@@ -739,121 +754,215 @@ export function AdminPanel() {
                   {/* Certifications Tab */}
                   <TabsContent value="certs">
                     <div className="space-y-4">
-                      <h4 className="font-medium">Add New Certification</h4>
-                      <div className="space-y-2">
-                        <Label htmlFor="cert-title">Title *</Label>
-                        <Input
-                          id="cert-title"
-                          value={newCertification.title}
-                          onChange={(e) =>
-                            setNewCertification({
-                              ...newCertification,
-                              title: e.target.value,
-                            })
-                          }
-                          required
-                        />
-                      </div>
+                      {/* ── Edit mode ── */}
+                      {editingCert ? (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">Edit Certification</h4>
+                            <Button variant="ghost" size="sm" onClick={() => setEditingCert(null)}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-cert-name">Name *</Label>
+                            <Input
+                              id="edit-cert-name"
+                              value={editingCert.name}
+                              onChange={(e) => setEditingCert({ ...editingCert, name: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-cert-issuer">Issuer *</Label>
+                            <Input
+                              id="edit-cert-issuer"
+                              value={editingCert.issuer}
+                              onChange={(e) => setEditingCert({ ...editingCert, issuer: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-cert-date">Date</Label>
+                            <Input
+                              id="edit-cert-date"
+                              type="date"
+                              value={editingCert.date}
+                              onChange={(e) => setEditingCert({ ...editingCert, date: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-cert-type">Type</Label>
+                            <select
+                              id="edit-cert-type"
+                              value={editingCert.type}
+                              onChange={(e) => setEditingCert({ ...editingCert, type: e.target.value as Certification["type"] })}
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            >
+                              <option value="aws">AWS</option>
+                              <option value="alx">ALX</option>
+                              <option value="oracle">Oracle</option>
+                              <option value="badge">Network Badge</option>
+                              <option value="other">Other</option>
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-cert-badge">Badge Image URL</Label>
+                            <Input
+                              id="edit-cert-badge"
+                              value={editingCert.badge ?? ""}
+                              onChange={(e) => setEditingCert({ ...editingCert, badge: e.target.value })}
+                              placeholder="https://images.credly.com/..."
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-cert-url">Credential URL</Label>
+                            <Input
+                              id="edit-cert-url"
+                              value={editingCert.credential_url ?? ""}
+                              onChange={(e) => setEditingCert({ ...editingCert, credential_url: e.target.value })}
+                              placeholder="https://www.credly.com/badges/..."
+                            />
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              id="edit-cert-in-progress"
+                              checked={editingCert.in_progress}
+                              onCheckedChange={(checked) => setEditingCert({ ...editingCert, in_progress: checked })}
+                            />
+                            <Label htmlFor="edit-cert-in-progress">In Progress</Label>
+                          </div>
+                          <Button onClick={handleUpdateCertification} className="w-full" disabled={isLoading}>
+                            {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                            Save Changes
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <h4 className="font-medium">Add New Certification / Badge</h4>
+                          <div className="space-y-2">
+                            <Label htmlFor="cert-name">Name *</Label>
+                            <Input
+                              id="cert-name"
+                              value={newCertification.name}
+                              onChange={(e) => setNewCertification({ ...newCertification, name: e.target.value })}
+                              placeholder="AWS Cloud Practitioner"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="cert-issuer">Issuer *</Label>
+                            <Input
+                              id="cert-issuer"
+                              value={newCertification.issuer}
+                              onChange={(e) => setNewCertification({ ...newCertification, issuer: e.target.value })}
+                              placeholder="Amazon Web Services"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="cert-date">Date</Label>
+                            <Input
+                              id="cert-date"
+                              type="date"
+                              value={newCertification.date}
+                              onChange={(e) => setNewCertification({ ...newCertification, date: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="cert-type">Type</Label>
+                            <select
+                              id="cert-type"
+                              value={newCertification.type}
+                              onChange={(e) => setNewCertification({ ...newCertification, type: e.target.value as Certification["type"] })}
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            >
+                              <option value="aws">AWS</option>
+                              <option value="alx">ALX</option>
+                              <option value="oracle">Oracle</option>
+                              <option value="badge">Network Badge</option>
+                              <option value="other">Other</option>
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="cert-badge">Badge Image URL</Label>
+                            <Input
+                              id="cert-badge"
+                              value={newCertification.badge ?? ""}
+                              onChange={(e) => setNewCertification({ ...newCertification, badge: e.target.value })}
+                              placeholder="https://images.credly.com/..."
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="cert-url">Credential URL</Label>
+                            <Input
+                              id="cert-url"
+                              value={newCertification.credential_url ?? ""}
+                              onChange={(e) => setNewCertification({ ...newCertification, credential_url: e.target.value })}
+                              placeholder="https://www.credly.com/badges/..."
+                            />
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              id="cert-in-progress"
+                              checked={newCertification.in_progress}
+                              onCheckedChange={(checked) => setNewCertification({ ...newCertification, in_progress: checked })}
+                            />
+                            <Label htmlFor="cert-in-progress">In Progress</Label>
+                          </div>
+                          <Button
+                            onClick={handleAddCertification}
+                            className="w-full"
+                            disabled={isLoading || !newCertification.name || !newCertification.issuer}
+                          >
+                            {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                            Add Credential
+                          </Button>
+                        </>
+                      )}
 
-                      <div className="space-y-2">
-                        <Label htmlFor="cert-issuer">Issuer *</Label>
-                        <Input
-                          id="cert-issuer"
-                          value={newCertification.issuer}
-                          onChange={(e) =>
-                            setNewCertification({
-                              ...newCertification,
-                              issuer: e.target.value,
-                            })
-                          }
-                          required
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="cert-date">Date</Label>
-                        <Input
-                          id="cert-date"
-                          type="date"
-                          value={newCertification.date}
-                          onChange={(e) =>
-                            setNewCertification({
-                              ...newCertification,
-                              date: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="cert-in-progress"
-                          checked={newCertification.in_progress}
-                          onCheckedChange={(checked) =>
-                            setNewCertification({
-                              ...newCertification,
-                              in_progress: checked,
-                            })
-                          }
-                        />
-                        <Label htmlFor="cert-in-progress">In Progress</Label>
-                      </div>
-
-                      <Button
-                        onClick={handleAddCertification}
-                        className="w-full"
-                        disabled={
-                          isLoading ||
-                          !newCertification.title ||
-                          !newCertification.issuer
-                        }
-                      >
-                        {isLoading ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <Plus className="h-4 w-4 mr-2" />
-                        )}
-                        Add Certification
-                      </Button>
-
+                      {/* List */}
                       <div className="mt-4">
-                        <h4 className="font-medium mb-2">
-                          Your Certifications
-                        </h4>
+                        <h4 className="font-medium mb-2">Your Credentials</h4>
                         <div className="space-y-2">
                           {certifications.length === 0 ? (
                             <p className="text-sm text-muted-foreground text-center py-4">
-                              No certifications added yet.
+                              No credentials added yet.
                             </p>
                           ) : (
                             certifications.map((cert) => (
                               <div
                                 key={cert.id}
-                                className="flex items-center justify-between p-2 border rounded"
+                                className="flex items-center justify-between p-2 border rounded gap-2"
                               >
-                                <div>
-                                  <span className="font-medium">
-                                    {cert.title}
+                                <div className="min-w-0 flex-1">
+                                  <span className="font-medium text-sm block truncate">
+                                    {cert.name}
                                   </span>
-                                  <div className="text-xs text-muted-foreground">
-                                    {cert.issuer} • {cert.date}
+                                  <div className="text-xs text-muted-foreground flex items-center gap-1 flex-wrap">
+                                    <span>{cert.issuer}</span>
+                                    <span>•</span>
+                                    <span className="uppercase font-mono">{cert.type}</span>
                                     {cert.in_progress && (
-                                      <Badge variant="outline" className="ml-2">
-                                        In Progress
-                                      </Badge>
+                                      <Badge variant="outline" className="ml-1">In Progress</Badge>
                                     )}
                                   </div>
                                 </div>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() =>
-                                    handleDeleteCertification(cert.id!)
-                                  }
-                                  disabled={isLoading}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <div className="flex gap-1 flex-shrink-0">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setEditingCert(cert)}
+                                    disabled={isLoading}
+                                  >
+                                    <Save className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteCertification(cert.id!)}
+                                    disabled={isLoading}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
                             ))
                           )}

@@ -228,7 +228,7 @@ export default function ProfilePage() {
   const isCertification = (
     item: number | Certification
   ): item is Certification => {
-    return typeof item !== "number" && "title" in item;
+    return typeof item !== "number" && "name" in item && "issuer" in item;
   };
 
   const isLanguage = (item: number | Language): item is Language => {
@@ -637,7 +637,7 @@ export default function ProfilePage() {
                               </div>
                               <div className="flex-1">
                                 <h3 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center">
-                                  {certification.title}
+                                  {certification.name}
                                   {certification.in_progress && (
                                     <Badge className="ml-2 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
                                       In Progress

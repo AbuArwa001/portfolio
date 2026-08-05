@@ -257,28 +257,32 @@ export const api = {
   },
   certifications: {
     get: (): Promise<Certification[]> => authFetch("/profile/certifications/"),
+    getPublic: (): Promise<Certification[]> => publicFetch("/certifications/"),
     getById: (id: number): Promise<Certification> =>
       authFetch(`/profile/certifications/${id}/`),
-    add: (data: Certification) =>
-      authFetch("/profile/certifications/", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
-    create: async (data: Certification): Promise<Certification> => {
+    create: async (data: Omit<Certification, "id">): Promise<Certification> => {
       const response = await fetch("/api/auth/profile/certifications/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json();
     },
-    delete: async (id: number): Promise<Certification> => {
+    update: async (id: number, data: Partial<Certification>): Promise<Certification> => {
+      const response = await fetch(`/api/auth/profile/certifications/${id}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    delete: async (id: number): Promise<void> => {
       const response = await fetch(`/api/auth/profile/certifications/${id}/`, {
         method: "DELETE",
       });
-      return response.json();
+      if (!response.ok && response.status !== 204) throw new Error(`HTTP ${response.status}`);
     },
   },
   Languages: {
