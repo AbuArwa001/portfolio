@@ -8,6 +8,17 @@ import { revalidatePath } from "next/cache";
 
 const DATA_PATH = path.join(process.cwd(), "app/resume/resume.json");
 
+export type Reference = {
+  name: string;
+  title: string;
+  company: string;
+  relationship: string;
+  quote: string;
+  email?: string;
+  phone?: string;
+  linkedin?: string;
+};
+
 export type ResumeData = {
   profile: { name: string; role: string; avatar: string; bio?: string; location?: string; phone?: string };
   contact: { email: string; linkedin: string; github: string; website?: string };
@@ -15,6 +26,7 @@ export type ResumeData = {
   education: Array<{ school: string; degree: string; period: string }>;
   skills: string[];
   certifications: Array<{ name: string; issuer: string; year: string }>;
+  references: Reference[];
 };
 
 async function requireAuth() {
@@ -24,7 +36,10 @@ async function requireAuth() {
 
 export async function getResumeData(): Promise<ResumeData> {
   const raw = await fs.readFile(DATA_PATH, "utf-8");
-  return JSON.parse(raw) as ResumeData;
+  const data = JSON.parse(raw) as ResumeData;
+  // Backward-compat: ensure references exists
+  if (!data.references) data.references = [];
+  return data;
 }
 
 export async function saveResumeData(data: ResumeData): Promise<{ ok: boolean; error?: string }> {
@@ -33,6 +48,7 @@ export async function saveResumeData(data: ResumeData): Promise<{ ok: boolean; e
     await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2), "utf-8");
     revalidatePath("/resume");
     revalidatePath("/cv/print");
+    revalidatePath("/references");
     return { ok: true };
   } catch (e: unknown) {
     return { ok: false, error: e instanceof Error ? e.message : "Unknown error" };
