@@ -10,6 +10,8 @@ import { Menu, X, Github, Linkedin, Network } from "lucide-react";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/projects", label: "Projects" },
+  { href: "/activity", label: "Activity" },
+  { href: "/references", label: "References" },
   { href: "/resume", label: "Résumé" },
   { href: "/blog", label: "Blog" },
   { href: "/contact", label: "Contact" },

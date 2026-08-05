@@ -595,13 +595,52 @@ export default function ProjectsPage() {
           </motion.div>
         )}
 
+        {/* ── GitHub Activity Teaser ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mt-20 mb-12"
+        >
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-primary/70 mb-2">
+            Coding Activity
+          </h2>
+          <div className="h-px bg-gradient-to-r from-primary/40 via-border/40 to-transparent mb-8" />
+
+          {/* Static CTA — live stats are on /activity page */}
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-8 flex flex-col md:flex-row items-center gap-6">
+            <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 shrink-0">
+              <Github className="h-8 w-8 text-primary" />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <h3 className="text-xl font-bold text-foreground mb-1">
+                Live GitHub Stats Dashboard
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-lg">
+                View my full coding activity — contribution calendar, language breakdown,
+                recent commits, top repositories, and live event feed — all pulled
+                directly from the GitHub API in real time.
+              </p>
+            </div>
+            <Link
+              href="/activity"
+              className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors shrink-0"
+            >
+              <Github className="h-4 w-4" />
+              View Activity
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </motion.div>
+
         {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="mt-20 text-center"
+          className="mt-8 text-center"
         >
           <div className="inline-block rounded-3xl border border-border/60 bg-card p-10">
             <Server className="h-10 w-10 text-primary mx-auto mb-4" />

@@ -1,227 +1,481 @@
-// app/activity/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { motion, useInView } from "framer-motion";
+import {
+  Github, Star, GitFork, GitCommit, Users, BookOpen,
+  Code2, ExternalLink, Activity, Globe, Flame, Clock,
+  ArrowUpRight, TrendingUp, Package,
+} from "lucide-react";
 
-const ActivityPage = () => {
-  const [isMounted, setIsMounted] = useState(false);
-  const [activeCard, setActiveCard] = useState<string | null>(null);
+const GH_USER = "AbuArwa001";
+const GH_API = `https://api.github.com/users/${GH_USER}`;
+const REPOS_API = `https://api.github.com/users/${GH_USER}/repos?per_page=100&sort=updated`;
+const EVENTS_API = `https://api.github.com/users/${GH_USER}/events/public?per_page=30`;
+const CONTRIB_API = `https://github-contributions-api.jogruber.de/v4/${GH_USER}?y=last`;
+
+// ─── Types ─────────────────────────────────────────────────────────────────────
+interface GHUser {
+  public_repos: number;
+  followers: number;
+  following: number;
+  created_at: string;
+  bio: string;
+  html_url: string;
+}
+
+interface GHRepo {
+  id: number;
+  name: string;
+  description: string | null;
+  stargazers_count: number;
+  forks_count: number;
+  language: string | null;
+  html_url: string;
+  updated_at: string;
+  topics: string[];
+  fork: boolean;
+}
+
+interface GHEvent {
+  id: string;
+  type: string;
+  created_at: string;
+  repo: { name: string; url: string };
+  payload: { commits?: { message: string }[]; ref?: string; action?: string };
+}
+
+interface ContribDay { date: string; count: number; level: 0 | 1 | 2 | 3 | 4; }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const timeAgo = (iso: string) => {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+};
+
+const eventLabel = (e: GHEvent): string => {
+  switch (e.type) {
+    case "PushEvent": {
+      const n = e.payload.commits?.length ?? 0;
+      const msg = e.payload.commits?.[0]?.message?.split("\n")[0] ?? "";
+      return `Pushed ${n} commit${n !== 1 ? "s" : ""}${msg ? ` — ${msg}` : ""}`;
+    }
+    case "CreateEvent": return `Created ${e.payload.ref ?? "branch/tag"}`;
+    case "WatchEvent": return "Starred a repository";
+    case "ForkEvent": return "Forked a repository";
+    case "IssuesEvent": return `${e.payload.action} an issue`;
+    case "PullRequestEvent": return `${e.payload.action} a pull request`;
+    default: return e.type.replace("Event", "");
+  }
+};
+
+const LEVEL_COLORS = [
+  "bg-white/5 border-white/10",
+  "bg-emerald-900/60 border-emerald-800/40",
+  "bg-emerald-700/60 border-emerald-600/40",
+  "bg-emerald-500/60 border-emerald-400/40",
+  "bg-emerald-400/80 border-emerald-300/60",
+];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.45, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] as const },
+  }),
+};
+
+// ─── Contribution Calendar ────────────────────────────────────────────────────
+function CalendarGrid({ days }: { days: ContribDay[] }) {
+  // Group into weeks
+  const weeks: ContribDay[][] = [];
+  let week: ContribDay[] = [];
+  days.forEach((d, i) => {
+    week.push(d);
+    if (week.length === 7 || i === days.length - 1) {
+      weeks.push(week);
+      week = [];
+    }
+  });
+
+  return (
+    <div className="overflow-x-auto pb-2">
+      <div className="flex gap-[3px] min-w-max">
+        {weeks.map((wk, wi) => (
+          <div key={wi} className="flex flex-col gap-[3px]">
+            {wk.map((d) => (
+              <div
+                key={d.date}
+                title={`${d.date}: ${d.count} contribution${d.count !== 1 ? "s" : ""}`}
+                className={`w-3 h-3 rounded-[2px] border ${LEVEL_COLORS[d.level]} cursor-default transition-all hover:scale-125`}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Language Bar ─────────────────────────────────────────────────────────────
+const LANG_COLORS: Record<string, string> = {
+  TypeScript: "#3178c6", JavaScript: "#f7df1e", Python: "#3572a5",
+  "C": "#555555", "C++": "#f34b7d", HTML: "#e34c26", CSS: "#563d7c",
+  Shell: "#89e051", Dockerfile: "#384d54", Vue: "#41b883", Other: "#8b8b8b",
+};
+
+function LanguageBar({ langs }: { langs: Record<string, number> }) {
+  const total = Object.values(langs).reduce((s, v) => s + v, 0);
+  const sorted = Object.entries(langs).sort(([, a], [, b]) => b - a).slice(0, 8);
+  return (
+    <div>
+      <div className="flex rounded-full overflow-hidden h-2.5 mb-4">
+        {sorted.map(([lang, count]) => (
+          <div
+            key={lang}
+            style={{ width: `${(count / total) * 100}%`, backgroundColor: LANG_COLORS[lang] ?? LANG_COLORS.Other }}
+            title={`${lang}: ${((count / total) * 100).toFixed(1)}%`}
+          />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-2">
+        {sorted.map(([lang, count]) => (
+          <div key={lang} className="flex items-center gap-1.5">
+            <span
+              className="w-2.5 h-2.5 rounded-full"
+              style={{ backgroundColor: LANG_COLORS[lang] ?? LANG_COLORS.Other }}
+            />
+            <span className="text-xs text-muted-foreground">{lang}</span>
+            <span className="text-xs text-muted-foreground/60">
+              {((count / total) * 100).toFixed(0)}%
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ──────────────────────────────────────────────────────────────────────
+export default function ActivityPage() {
+  const [user, setUser] = useState<GHUser | null>(null);
+  const [repos, setRepos] = useState<GHRepo[]>([]);
+  const [events, setEvents] = useState<GHEvent[]>([]);
+  const [contribDays, setContribDays] = useState<ContribDay[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const headerRef = useRef(null);
+  const headerInView = useInView(headerRef, { once: true });
 
   useEffect(() => {
-    setIsMounted(true);
+    const fetchAll = async () => {
+      try {
+        const [uRes, rRes, eRes, cRes] = await Promise.allSettled([
+          fetch(GH_API).then((r) => r.json()),
+          fetch(REPOS_API).then((r) => r.json()),
+          fetch(EVENTS_API).then((r) => r.json()),
+          fetch(CONTRIB_API).then((r) => r.json()),
+        ]);
+        if (uRes.status === "fulfilled") setUser(uRes.value);
+        if (rRes.status === "fulfilled" && Array.isArray(rRes.value)) setRepos(rRes.value);
+        if (eRes.status === "fulfilled" && Array.isArray(eRes.value)) setEvents(eRes.value);
+        if (cRes.status === "fulfilled" && cRes.value?.contributions) {
+          setContribDays(cRes.value.contributions);
+        }
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAll();
   }, []);
 
-  // Helper function to add cache busting parameter
-  const addCacheBuster = (url: string) => {
-    return `${url}${url.includes("?") ? "&" : "?"}cb=${Date.now()}`;
-  };
+  // Derived stats
+  const ownRepos = repos.filter((r) => !r.fork);
+  const totalStars = repos.reduce((s, r) => s + r.stargazers_count, 0);
+  const totalForks = repos.reduce((s, r) => s + r.forks_count, 0);
+  const topRepos = [...ownRepos].sort((a, b) => b.stargazers_count - a.stargazers_count).slice(0, 6);
+  const totalContribs = contribDays.reduce((s, d) => s + d.count, 0);
 
-  // Stats data
-  const stats = [
-    { label: "Public Repositories", value: "24", color: "text-blue-400" },
-    { label: "Stars Earned", value: "128", color: "text-yellow-400" },
-    { label: "Contributions (2023)", value: "1,024", color: "text-green-400" },
+  // Language map
+  const langMap: Record<string, number> = {};
+  repos.forEach((r) => {
+    if (r.language) langMap[r.language] = (langMap[r.language] ?? 0) + 1;
+  });
+
+  const HIGHLIGHTS = [
+    { label: "Public Repos", value: (user?.public_repos ?? ownRepos.length) || "—", icon: <BookOpen className="h-5 w-5" />, color: "text-indigo-400" },
+    { label: "Total Stars", value: totalStars || "—", icon: <Star className="h-5 w-5" />, color: "text-amber-400" },
+    { label: "Total Forks", value: totalForks || "—", icon: <GitFork className="h-5 w-5" />, color: "text-sky-400" },
+    { label: "Contributions (yr)", value: totalContribs > 0 ? totalContribs.toLocaleString() : "—", icon: <GitCommit className="h-5 w-5" />, color: "text-emerald-400" },
+    { label: "Followers", value: user?.followers ?? "—", icon: <Users className="h-5 w-5" />, color: "text-purple-400" },
+    { label: "Following", value: user?.following ?? "—", icon: <Activity className="h-5 w-5" />, color: "text-pink-400" },
   ];
 
-  // Card data
-  const cards = [
-    {
-      id: "github-stats",
-      title: "GitHub Stats",
-      icon: (
-        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-          <path
-            fillRule="evenodd"
-            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
-      imageUrl: addCacheBuster(
-        "https://github-readme-stats.vercel.app/api?username=AbuArwa001&show_icons=true&theme=dark&count_private=true&hide_border=true&bg_color=0f172a&title_color=38bdf8&text_color=94a3b8&icon_color=38bdf8"
-      ),
-    },
-    {
-      id: "top-languages",
-      title: "Top Languages",
-      icon: (
-        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-          <path
-            fillRule="evenodd"
-            d="M1 12C1 5.925 5.925 1 12 1s11 4.925 11 11-4.925 11-11 11S1 18.075 1 12zm8.925-4.218a.5.5 0 00-.85.525l.001.002.002.004.004.007.015.027a6.913 6.913 0 01.384.722c.243.487.535 1.126.763 1.807.228.68.353 1.223.353 1.547v.02h1.402v-.02c0-.324.125-.866.353-1.547.228-.68.52-1.32.763-1.807a6.94 6.94 0 01.384-.722l.015-.027.004-.007.001-.003a.5.5 0 00-.85-.525l-.003.005-.01.018-.037.066a5.915 5.915 0 00-.327.614c-.21.421-.474.99-.677 1.59a6.782 6.782 0 00-.302 1.645h-1.79a6.782 6.782 0 00-.302-1.645c-.203-.6-.467-1.169-.677-1.59a5.915 5.915 0 00-.327-.614l-.01-.018-.003-.005zM12 16.5a1 1 0 100 2 1 1 0 000-2z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
-      imageUrl: addCacheBuster(
-        "https://github-readme-stats.vercel.app/api/top-langs/?username=AbuArwa001&layout=compact&theme=dark&hide_border=true&bg_color=0f172a&title_color=38bdf8&text_color=94a3b8&langs_count=8"
-      ),
-    },
-    {
-      id: "github-streak",
-      title: "GitHub Streak",
-      icon: (
-        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8c0-5.39-2.59-10.2-6.5-13.33zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z" />
-        </svg>
-      ),
-      imageUrl: addCacheBuster(
-        "https://github-readme-streak-stats.herokuapp.com/?user=AbuArwa001&theme=dark&hide_border=true&background=0F172A&stroke=1F2937&ring=38BDF8&fire=38BDF8&currStreakLabel=38BDF8"
-      ),
-    },
-    {
-      id: "github-trophies",
-      title: "GitHub Achievements",
-      icon: (
-        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.827h2v1z" />
-        </svg>
-      ),
-      imageUrl: addCacheBuster(
-        "https://github-profile-trophy.vercel.app/?username=AbuArwa001&theme=dark&no-frame=true&margin-w=5&margin-h=5&row=2&column=4"
-      ),
-    },
-  ];
-
-  if (!isMounted) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading GitHub data…</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-8 md:mb-12 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-            Developer Activity
-          </h1>
-          <p className="text-slate-300 max-w-2xl mx-auto">
-            Real-time GitHub statistics and coding activity metrics
-          </p>
-        </header>
+    <div className="relative min-h-screen bg-background selection:bg-primary/30">
+      {/* Ambient glow */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] opacity-15 pointer-events-none -z-10">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/50 via-primary/30 to-purple-500/20 blur-[120px] rounded-full" />
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {cards.map((card) => (
-            <div
-              key={card.id}
-              className={`rounded-xl bg-slate-800 border border-slate-700 p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:border-blue-500/30 hover:-translate-y-1 ${
-                activeCard === card.id ? "ring-2 ring-blue-500/50" : ""
-              }`}
-              onMouseEnter={() => setActiveCard(card.id)}
-              onMouseLeave={() => setActiveCard(null)}
+      <div className="container px-4 mx-auto pt-32 pb-24">
+
+        {/* ── Header ── */}
+        <motion.div
+          ref={headerRef}
+          initial={{ opacity: 0, y: 30 }}
+          animate={headerInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-16"
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-sm font-medium text-primary bg-primary/10 rounded-full border border-primary/20">
+            <Github className="w-4 h-4" />
+            <span>@{GH_USER} · Live GitHub Data</span>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-foreground mb-5">
+            Coding{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-400">Activity</span>
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
+            Live statistics, contribution history, and repository insights pulled directly from the GitHub API.
+          </p>
+          <div className="mt-6">
+            <a
+              href={`https://github.com/${GH_USER}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             >
-              <h2 className="text-xl font-semibold mb-4 flex items-center">
-                {card.icon}
-                {card.title}
-              </h2>
-              <div className="relative h-40">
-                <Image
-                  src={card.imageUrl}
-                  alt={card.title}
-                  fill
-                  className="object-contain transition-transform duration-300 hover:scale-105"
-                  unoptimized
-                />
-              </div>
-            </div>
+              <Github className="h-4 w-4" /> Visit GitHub Profile <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        </motion.div>
+
+        {error && (
+          <div className="mb-10 p-4 rounded-xl border border-destructive/20 bg-destructive/5 text-sm text-destructive">
+            ⚠️ Could not reach GitHub API. Some data may be unavailable.
+          </div>
+        )}
+
+        {/* ── Highlight Stats ── */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-14">
+          {HIGHLIGHTS.map((s, i) => (
+            <motion.div
+              key={s.label}
+              custom={i}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm hover:border-primary/40 transition-all duration-300 text-center"
+            >
+              <div className={s.color}>{s.icon}</div>
+              <span className={`text-2xl font-extrabold ${s.color}`}>{s.value}</span>
+              <span className="text-xs text-muted-foreground font-medium leading-tight">{s.label}</span>
+            </motion.div>
           ))}
         </div>
 
-        {/* GitHub Snake Animation */}
-        <div className="rounded-xl bg-slate-800 border border-slate-700 p-6 shadow-lg mt-8 transition-all duration-300 hover:shadow-xl hover:border-blue-500/30">
-          <h2 className="text-xl font-semibold mb-4 flex items-center">
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
+        {/* ── Section: Contribution Calendar ── */}
+        <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="mb-6">
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-primary/70 mb-2">Contribution Calendar</h2>
+          <div className="h-px bg-gradient-to-r from-primary/40 via-border/40 to-transparent mb-8" />
+        </motion.div>
+
+        <motion.div
+          custom={1} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+          className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-6 mb-14 hover:border-primary/30 transition-all"
+        >
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2 text-primary">
+              <TrendingUp className="h-4 w-4" />
+              <span className="text-sm font-semibold">Past Year Contributions</span>
+            </div>
+            {totalContribs > 0 && (
+              <span className="text-xs text-muted-foreground font-mono">
+                {totalContribs.toLocaleString()} total this year
+              </span>
+            )}
+          </div>
+          {contribDays.length > 0 ? (
+            <>
+              <CalendarGrid days={contribDays} />
+              <div className="flex items-center gap-1.5 mt-3 justify-end">
+                <span className="text-xs text-muted-foreground">Less</span>
+                {LEVEL_COLORS.map((cls, i) => (
+                  <div key={i} className={`w-3 h-3 rounded-[2px] border ${cls}`} />
+                ))}
+                <span className="text-xs text-muted-foreground">More</span>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Contribution data unavailable — visit{" "}
+              <a href={`https://github.com/${GH_USER}`} className="text-primary underline" target="_blank" rel="noopener noreferrer">
+                github.com/{GH_USER}
+              </a>
+            </p>
+          )}
+        </motion.div>
+
+        {/* ── Section: Languages ── */}
+        <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="mb-6">
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-primary/70 mb-2">Languages & Activity</h2>
+          <div className="h-px bg-gradient-to-r from-primary/40 via-border/40 to-transparent mb-8" />
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-14">
+          {/* Language breakdown */}
+          <motion.div
+            custom={1} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+            className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-6 hover:border-primary/30 transition-all"
+          >
+            <div className="flex items-center gap-2 text-primary mb-5">
+              <Code2 className="h-4 w-4" />
+              <span className="text-sm font-semibold">Language Distribution</span>
+            </div>
+            {Object.keys(langMap).length > 0 ? (
+              <LanguageBar langs={langMap} />
+            ) : (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            )}
+          </motion.div>
+
+          {/* Recent events feed */}
+          <motion.div
+            custom={2} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+            className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-6 hover:border-primary/30 transition-all"
+          >
+            <div className="flex items-center gap-2 text-primary mb-5">
+              <Flame className="h-4 w-4" />
+              <span className="text-sm font-semibold">Recent Activity</span>
+              <span className="ml-auto flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs text-emerald-400 font-medium">Live</span>
+              </span>
+            </div>
+            {events.length > 0 ? (
+              <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1 scrollbar-thin">
+                {events.slice(0, 12).map((ev) => (
+                  <div key={ev.id} className="flex items-start gap-3 text-xs">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-foreground/90 truncate">{eventLabel(ev)}</p>
+                      <p className="text-muted-foreground/60 truncate">
+                        {ev.repo.name} · {timeAgo(ev.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No recent events found.</p>
+            )}
+          </motion.div>
+        </div>
+
+        {/* ── Section: Top Repos ── */}
+        <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="mb-6">
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-primary/70 mb-2">Top Repositories</h2>
+          <div className="h-px bg-gradient-to-r from-primary/40 via-border/40 to-transparent mb-8" />
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-20">
+          {topRepos.map((repo, i) => (
+            <motion.a
+              key={repo.id}
+              href={repo.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              custom={i}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              className="group flex flex-col rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-5 hover:border-primary/40 transition-all duration-300 hover:shadow-[0_0_30px_-10px] hover:shadow-primary/15"
             >
-              <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 22c-5.514 0-10-4.486-10-10s4.486-10 10-10 10 4.486 10 10-4.486 10-10 10zm-2-17h4v10h-4v-10zm4 12h-4v2h4v-2z" />
-            </svg>
-            Coding Snake
-          </h2>
-          <div className="relative w-full h-40 md:h-48 overflow-hidden rounded-lg">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 animate-pulse"></div>
-            <picture>
-              <source
-                media="(prefers-color-scheme: dark)"
-                srcSet="https://raw.githubusercontent.com/AbuArwa001/AbuArwa001/output/github-snake-dark.svg"
-              />
-              <source
-                media="(prefers-color-scheme: light)"
-                srcSet="https://raw.githubusercontent.com/AbuArwa001/AbuArwa001/output/github-snake.svg"
-              />
-              <Image
-                src="https://raw.githubusercontent.com/AbuArwa001/AbuArwa001/output/github-snake-dark.svg"
-                alt="GitHub Snake Animation"
-                fill
-                className="object-contain"
-                unoptimized
-              />
-            </picture>
-          </div>
-        </div>
-
-        <div className="mt-8 md:mt-12 p-6 bg-slate-800 rounded-xl border border-slate-700 transition-all duration-300 hover:shadow-xl">
-          <h2 className="text-2xl font-semibold mb-4 text-center md:text-left">
-            About These Stats
-          </h2>
-          <p className="text-slate-300 mb-6 text-center md:text-left">
-            These statistics are generated using the GitHub Readme Stats API.
-            They provide insights into coding activity, language preferences,
-            and contribution patterns.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {stats.map((stat, index) => (
-              <div
-                key={index}
-                className="p-4 bg-slate-700 rounded-lg transition-all duration-300 hover:bg-slate-600 hover:scale-105"
-              >
-                <h3 className="font-medium mb-2 text-slate-300">
-                  {stat.label}
-                </h3>
-                <p className={`text-2xl font-bold ${stat.color}`}>
-                  {stat.value}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Live Activity Feed (Placeholder) */}
-        <div className="mt-8 p-6 bg-slate-800 rounded-xl border border-slate-700">
-          <h2 className="text-2xl font-semibold mb-4 flex items-center">
-            <span className="relative flex h-3 w-3 mr-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-            </span>
-            Recent Activity
-          </h2>
-          <div className="space-y-4">
-            {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="p-4 bg-slate-700 rounded-lg border-l-4 border-blue-500 animate-pulse"
-              >
-                <div className="flex justify-between items-center">
-                  <div className="h-4 bg-slate-600 rounded w-3/4"></div>
-                  <div className="h-3 bg-slate-600 rounded w-1/4"></div>
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2 text-primary">
+                  <Package className="h-4 w-4" />
+                  <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                    {repo.name}
+                  </span>
                 </div>
-                <div className="h-3 bg-slate-600 rounded w-1/2 mt-2"></div>
+                <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
               </div>
-            ))}
-          </div>
-          <button className="mt-4 w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors duration-300 text-slate-300">
-            View All Activity
-          </button>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1 line-clamp-2">
+                {repo.description ?? "No description provided."}
+              </p>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                {repo.language && (
+                  <span className="flex items-center gap-1">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: LANG_COLORS[repo.language] ?? LANG_COLORS.Other }}
+                    />
+                    {repo.language}
+                  </span>
+                )}
+                <span className="flex items-center gap-1">
+                  <Star className="h-3.5 w-3.5" /> {repo.stargazers_count}
+                </span>
+                <span className="flex items-center gap-1">
+                  <GitFork className="h-3.5 w-3.5" /> {repo.forks_count}
+                </span>
+              </div>
+            </motion.a>
+          ))}
         </div>
+
+        {/* ── CTA ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }} transition={{ duration: 0.5 }}
+          className="text-center"
+        >
+          <div className="inline-block rounded-3xl border border-border/60 bg-card p-10">
+            <Globe className="h-10 w-10 text-primary mx-auto mb-4" />
+            <h3 className="text-2xl font-bold mb-3">Want to see the code?</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Browse all my open-source repositories and contribution history directly on GitHub.
+            </p>
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <a
+                href={`https://github.com/${GH_USER}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors"
+              >
+                <Github className="h-4 w-4" /> GitHub Profile
+              </a>
+              <Link
+                href="/projects"
+                className="inline-flex items-center gap-2 border border-border/60 text-muted-foreground font-medium px-6 py-3 rounded-xl hover:border-primary/40 hover:text-foreground transition-colors"
+              >
+                View Projects
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+
       </div>
     </div>
   );
-};
-
-export default ActivityPage;
+}
