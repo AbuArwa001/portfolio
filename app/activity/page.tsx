@@ -203,6 +203,11 @@ export default function ActivityPage() {
   const totalForks = repos.reduce((s, r) => s + r.forks_count, 0);
   const topRepos = [...ownRepos].sort((a, b) => b.stargazers_count - a.stargazers_count).slice(0, 6);
   const totalContribs = contribDays.reduce((s, d) => s + d.count, 0);
+  // Fallback: count commits from push events when the contrib API returns nothing
+  const eventCommits = events
+    .filter((e) => e.type === "PushEvent")
+    .reduce((s, e) => s + (e.payload.commits?.length ?? 0), 0);
+  const displayContribs = totalContribs > 0 ? totalContribs : eventCommits;
 
   // Language map
   const langMap: Record<string, number> = {};
@@ -214,7 +219,7 @@ export default function ActivityPage() {
     { label: "Public Repos", value: (user?.public_repos ?? ownRepos.length) || "—", icon: <BookOpen className="h-5 w-5" />, color: "text-indigo-400" },
     { label: "Total Stars", value: totalStars || "—", icon: <Star className="h-5 w-5" />, color: "text-amber-400" },
     { label: "Total Forks", value: totalForks || "—", icon: <GitFork className="h-5 w-5" />, color: "text-sky-400" },
-    { label: "Contributions (yr)", value: totalContribs > 0 ? totalContribs.toLocaleString() : "—", icon: <GitCommit className="h-5 w-5" />, color: "text-emerald-400" },
+    { label: "Contributions (yr)", value: displayContribs > 0 ? displayContribs.toLocaleString() : (loading ? "…" : "—"), icon: <GitCommit className="h-5 w-5" />, color: "text-emerald-400" },
     { label: "Followers", value: user?.followers ?? "—", icon: <Users className="h-5 w-5" />, color: "text-purple-400" },
     { label: "Following", value: user?.following ?? "—", icon: <Activity className="h-5 w-5" />, color: "text-pink-400" },
   ];
