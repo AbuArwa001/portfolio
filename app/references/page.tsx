@@ -1,10 +1,10 @@
 // app/references/page.tsx  — Server Component (no "use client")
-import { getResumeData } from "@/lib/resume-actions";
+// References are stored in the DRF backend API, not resume.json.
+// The client component fetches from the API directly on mount.
 import ReferencesClient from "./ReferencesClient";
 
-export const dynamic = "force-dynamic"; // always read latest data
+export const dynamic = "force-dynamic";
 
-export default async function ReferencesPage() {
-  const data = await getResumeData();
-  return <ReferencesClient references={data.references} />;
+export default function ReferencesPage() {
+  return <ReferencesClient references={[]} />;
 }

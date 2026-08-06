@@ -10,6 +10,7 @@ import {
   CheckCircle2, AlertCircle, Printer, Quote
 } from "lucide-react";
 import { getResumeData, saveResumeData, ResumeData } from "@/lib/resume-actions";
+import ReferencesTab from "./ReferencesTab";
 
 type Tab = "profile" | "experience" | "education" | "skills" | "certifications" | "references";
 
@@ -223,73 +224,6 @@ export default function DashboardPage() {
     </div>
   );
 
-  // ── References tab ────────────────────────────────────────────────────────
-  const ReferencesTab = () => (
-    <div className="flex flex-col gap-6">
-      <p className="text-sm text-muted-foreground">
-        Add professional referees here. They will appear on the public{" "}
-        <a href="/references" target="_blank" className="text-primary underline">References page</a>.
-        Contact details are shown — be mindful of privacy.
-      </p>
-      {data.references.map((ref, i) => (
-        <div key={i} className="rounded-2xl border border-border/60 bg-background p-5 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-primary/70 uppercase tracking-widest">
-              Referee #{i + 1}{ref.name ? ` — ${ref.name}` : ""}
-            </span>
-            <button
-              onClick={() => {
-                const refs = [...data.references];
-                refs.splice(i, 1);
-                setData({ ...data, references: refs });
-              }}
-              className="p-1.5 rounded-lg text-red-400 hover:bg-red-400/10 transition-colors"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Full Name" value={ref.name}
-              onChange={(v) => { const r = [...data.references]; r[i] = { ...r[i], name: v }; setData({ ...data, references: r }); }}
-              placeholder="e.g. John Doe" />
-            <Field label="Job Title" value={ref.title}
-              onChange={(v) => { const r = [...data.references]; r[i] = { ...r[i], title: v }; setData({ ...data, references: r }); }}
-              placeholder="e.g. Senior Manager" />
-            <Field label="Company / Organisation" value={ref.company}
-              onChange={(v) => { const r = [...data.references]; r[i] = { ...r[i], company: v }; setData({ ...data, references: r }); }}
-              placeholder="e.g. Jamia Mosque Committee" />
-            <Field label="Your Relationship" value={ref.relationship}
-              onChange={(v) => { const r = [...data.references]; r[i] = { ...r[i], relationship: v }; setData({ ...data, references: r }); }}
-              placeholder="e.g. Direct Supervisor" />
-            <Field label="Email" value={ref.email ?? ""} type="email"
-              onChange={(v) => { const r = [...data.references]; r[i] = { ...r[i], email: v }; setData({ ...data, references: r }); }}
-              placeholder="email@example.com" />
-            <Field label="Phone (optional)" value={ref.phone ?? ""}
-              onChange={(v) => { const r = [...data.references]; r[i] = { ...r[i], phone: v }; setData({ ...data, references: r }); }}
-              placeholder="+254 ..." />
-            <div className="md:col-span-2">
-              <Field label="LinkedIn URL (optional)" value={ref.linkedin ?? ""} type="url"
-                onChange={(v) => { const r = [...data.references]; r[i] = { ...r[i], linkedin: v }; setData({ ...data, references: r }); }}
-                placeholder="https://linkedin.com/in/..." />
-            </div>
-          </div>
-          <Textarea label="Recommendation / Endorsement Quote"
-            value={ref.quote}
-            onChange={(v) => { const r = [...data.references]; r[i] = { ...r[i], quote: v }; setData({ ...data, references: r }); }}
-          />
-        </div>
-      ))}
-      <button
-        onClick={() => setData({
-          ...data,
-          references: [...data.references, { name: "", title: "", company: "", relationship: "", quote: "", email: "", phone: "", linkedin: "" }],
-        })}
-        className="flex items-center gap-2 px-5 py-3 rounded-xl border border-dashed border-primary/40 text-primary hover:bg-primary/5 transition-colors text-sm font-medium"
-      >
-        <Plus className="h-4 w-4" /> Add Referee
-      </button>
-    </div>
-  );
 
   const CONTENT: Record<Tab, React.ReactNode> = {
     profile: <ProfileTab />,
