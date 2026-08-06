@@ -7,12 +7,13 @@ import { motion } from "framer-motion";
 import {
   User, Briefcase, GraduationCap, Code2, Award,
   Plus, Trash2, Save, ExternalLink, ChevronRight,
-  CheckCircle2, AlertCircle, Printer, Quote
+  CheckCircle2, AlertCircle, Printer, Quote, FolderKanban
 } from "lucide-react";
 import { getResumeData, saveResumeData, ResumeData } from "@/lib/resume-actions";
 import ReferencesTab from "./ReferencesTab";
+import ProjectsTab from "./ProjectsTab";
 
-type Tab = "profile" | "experience" | "education" | "skills" | "certifications" | "references";
+type Tab = "profile" | "experience" | "education" | "skills" | "certifications" | "references" | "projects";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "profile", label: "Profile", icon: <User className="h-4 w-4" /> },
@@ -21,6 +22,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "skills", label: "Skills", icon: <Code2 className="h-4 w-4" /> },
   { id: "certifications", label: "Certifications", icon: <Award className="h-4 w-4" /> },
   { id: "references", label: "References", icon: <Quote className="h-4 w-4" /> },
+  { id: "projects", label: "Projects", icon: <FolderKanban className="h-4 w-4" /> },
 ];
 
 function Field({ label, value, onChange, type = "text", placeholder = "" }: {
@@ -232,6 +234,7 @@ export default function DashboardPage() {
     skills: <SkillsTab />,
     certifications: <CertificationsTab />,
     references: <ReferencesTab />,
+    projects: <ProjectsTab />,
   };
 
   return (

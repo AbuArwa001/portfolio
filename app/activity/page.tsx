@@ -44,9 +44,14 @@ interface GHEvent {
   created_at: string;
   repo: { name: string; url: string };
   payload: {
-    commits?: { message: string }[];
-    size?: number;          // total commits in the push (authoritative)
-    distinct_size?: number; // distinct commits
+    // PushEvent fields (unauthenticated API omits commits[] and size)
+    commits?: { message: string; sha: string }[];
+    size?: number;
+    distinct_size?: number;
+    push_id?: number;
+    head?: string;   // SHA of the head commit after the push
+    before?: string; // SHA before the push
+    // Other event fields
     ref?: string;
     action?: string;
   };
@@ -67,10 +72,16 @@ const timeAgo = (iso: string) => {
 const eventLabel = (e: GHEvent): string => {
   switch (e.type) {
     case "PushEvent": {
-      // `size` is the authoritative total; `commits` array is often truncated/empty
-      const n = e.payload.size ?? e.payload.commits?.length ?? 0;
-      const msg = e.payload.commits?.[0]?.message?.split("\n")[0] ?? "";
-      return `Pushed ${n} commit${n !== 1 ? "s" : ""}${msg ? ` — ${msg}` : ""}`;
+      // Unauthenticated GitHub API omits commits[] and size — use head SHA + branch
+      const branch = e.payload.ref?.replace("refs/heads/", "") ?? "main";
+      const sha = e.payload.head?.slice(0, 7) ?? "";
+      // If commit data IS present (authenticated or cached), use it
+      const n = e.payload.size ?? e.payload.commits?.length;
+      if (n !== undefined && n > 0) {
+        const msg = e.payload.commits?.[0]?.message?.split("\n")[0] ?? "";
+        return `Pushed ${n} commit${n !== 1 ? "s" : ""} to ${branch}${msg ? ` — ${msg}` : ""}`;
+      }
+      return `Pushed to ${branch}${sha ? ` (${sha})` : ""}`;
     }
     case "CreateEvent": return `Created ${e.payload.ref ?? "branch/tag"}`;
     case "WatchEvent": return "Starred a repository";
@@ -210,11 +221,13 @@ export default function ActivityPage() {
   const totalForks = repos.reduce((s, r) => s + r.forks_count, 0);
   const topRepos = [...ownRepos].sort((a, b) => b.stargazers_count - a.stargazers_count).slice(0, 6);
   const totalContribs = contribDays.reduce((s, d) => s + d.count, 0);
-  // Fallback: count commits from push events when the contrib API returns nothing
-  const eventCommits = events
+  // Fallback: unauthenticated GitHub API omits commits[] and size from PushEvents.
+  // Count each PushEvent as 1 push, or use size if it happens to be present.
+  const eventPushes = events
     .filter((e) => e.type === "PushEvent")
-    .reduce((s, e) => s + (e.payload.commits?.length ?? 0), 0);
-  const displayContribs = totalContribs > 0 ? totalContribs : eventCommits;
+    .reduce((s, e) => s + (e.payload.size ?? e.payload.commits?.length ?? 1), 0);
+  const usingFallback = totalContribs === 0;
+  const displayContribs = totalContribs > 0 ? totalContribs : eventPushes;
 
   // Language map
   const langMap: Record<string, number> = {};
@@ -226,7 +239,7 @@ export default function ActivityPage() {
     { label: "Public Repos", value: (user?.public_repos ?? ownRepos.length) || "—", icon: <BookOpen className="h-5 w-5" />, color: "text-indigo-400" },
     { label: "Total Stars", value: totalStars || "—", icon: <Star className="h-5 w-5" />, color: "text-amber-400" },
     { label: "Total Forks", value: totalForks || "—", icon: <GitFork className="h-5 w-5" />, color: "text-sky-400" },
-    { label: "Contributions (yr)", value: displayContribs > 0 ? displayContribs.toLocaleString() : (loading ? "…" : "—"), icon: <GitCommit className="h-5 w-5" />, color: "text-emerald-400" },
+    { label: usingFallback ? "Pushes (recent)" : "Contributions (yr)", value: displayContribs > 0 ? displayContribs.toLocaleString() : (loading ? "…" : "—"), icon: <GitCommit className="h-5 w-5" />, color: "text-emerald-400" },
     { label: "Followers", value: user?.followers ?? "—", icon: <Users className="h-5 w-5" />, color: "text-purple-400" },
     { label: "Following", value: user?.following ?? "—", icon: <Activity className="h-5 w-5" />, color: "text-pink-400" },
   ];
