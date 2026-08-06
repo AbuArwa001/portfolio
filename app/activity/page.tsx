@@ -43,7 +43,13 @@ interface GHEvent {
   type: string;
   created_at: string;
   repo: { name: string; url: string };
-  payload: { commits?: { message: string }[]; ref?: string; action?: string };
+  payload: {
+    commits?: { message: string }[];
+    size?: number;          // total commits in the push (authoritative)
+    distinct_size?: number; // distinct commits
+    ref?: string;
+    action?: string;
+  };
 }
 
 interface ContribDay { date: string; count: number; level: 0 | 1 | 2 | 3 | 4; }
@@ -61,7 +67,8 @@ const timeAgo = (iso: string) => {
 const eventLabel = (e: GHEvent): string => {
   switch (e.type) {
     case "PushEvent": {
-      const n = e.payload.commits?.length ?? 0;
+      // `size` is the authoritative total; `commits` array is often truncated/empty
+      const n = e.payload.size ?? e.payload.commits?.length ?? 0;
       const msg = e.payload.commits?.[0]?.message?.split("\n")[0] ?? "";
       return `Pushed ${n} commit${n !== 1 ? "s" : ""}${msg ? ` — ${msg}` : ""}`;
     }
