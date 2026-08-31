@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { Menu, X, Github, Linkedin, Network } from "lucide-react";
@@ -19,7 +18,6 @@ const NAV_LINKS = [
 ];
 
 export default function NavBar() {
-  const { data: session } = useSession();
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -95,29 +93,12 @@ export default function NavBar() {
             >
               <Linkedin className="h-4 w-4" />
             </a>
-            {session ? (
-              <div className="flex items-center gap-2 ml-2">
-                <Link
-                  href="/dashboard"
-                  className="text-sm font-medium px-4 py-2 rounded-xl border border-border/60 text-muted-foreground hover:text-foreground hover:border-border transition-colors"
-                >
-                  Dashboard
-                </Link>
-                <button
-                  onClick={() => signOut()}
-                  className="text-sm font-medium px-4 py-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
-                >
-                  Sign Out
-                </button>
-              </div>
-            ) : (
-              <Link
-                href="/contact"
-                className="ml-2 inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-[0_0_20px_-8px] shadow-primary/50"
-              >
-                Hire Me
-              </Link>
-            )}
+            <Link
+              href="/contact"
+              className="ml-2 inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-[0_0_20px_-8px] shadow-primary/50"
+            >
+              Hire Me
+            </Link>
           </div>
 
           {/* Mobile toggle */}
