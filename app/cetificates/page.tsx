@@ -176,8 +176,8 @@ const item: Variants = {
 };
 
 export default function CertificatesPage() {
-  const [certs, setCerts] = useState<Certification[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [certs, setCerts] = useState<Certification[]>(FALLBACK_CREDENTIALS);
+  const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -197,12 +197,11 @@ export default function CertificatesPage() {
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           setCerts(data);
-        } else {
-          setCerts(FALLBACK_CREDENTIALS);
         }
       })
-      .catch(() => setCerts(FALLBACK_CREDENTIALS))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        // Keep fallback credentials
+      });
   }, []);
 
   const handleResolveLink = async (e: React.FormEvent) => {
