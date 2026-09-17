@@ -20,10 +20,13 @@
       "period": "2023 – Present",
       "location": "Nairobi, Kenya",
       "achievements": [
-        "Architected and managed multi-building campus enterprise network infrastructure with Cisco catalyst switches, enterprise routers, and stateful firewalls.",
-        "Engineered the jamiaGive administrative dashboard (Next.js, TypeScript, DRF) handling real-time donation auditing, fund transfers, and reporting.",
-        "Automated routine network configuration backups, device polling, and security monitoring using Python and Bash scripts.",
-        "Enforced strict VLAN traffic segmentation, QoS bandwidth prioritization, and security policies, decreasing network downtime by 40%."
+        "Proactively architected and developed the complete jamiaGive donation and financial auditing platform (Next.js, TypeScript, DRF, PostgreSQL) featuring real-time donor tracking, multi-category fund allocation, and audit trails.",
+        "Configured and maintained Panasonic KX-NS500 hybrid IP-PBX telephony infrastructure, managing IP desk phones, digital extensions, SIP trunks, and automated IVR call routing.",
+        "Installed and administered Hikvision biometric access control systems, facial recognition terminals, and integrated computerized time & attendance management software.",
+        "Served as technical liaison with third-party enterprise vendors to implement, troubleshoot, and maintain Tally ERP accounting systems.",
+        "Configured TP-Link managed switches with 802.1Q VLAN traffic segmentation, inter-VLAN routing, and port security policies, boosting network resilience.",
+        "Engineered campus-wide Wi-Fi coverage with Ubiquiti UniFi wireless access point (AP) installations, central UniFi controller provisioning, and isolated guest/staff SSIDs.",
+        "Managed Jamia Mosque high-capacity public address (PA) and acoustic sound systems, controlling mixer channels, feedback suppression, and multi-zone distribution."
       ]
     },
     {
@@ -80,11 +83,11 @@
     },
     {
       "name": "jamiaGive Admin Dashboard",
-      "role": "Full-Stack Engineer",
-      "period": "2025 – Ongoing",
+      "role": "Full-Stack Architect & Developer",
+      "period": "2025 – Complete",
       "url": "https://jmc-admin-dashboard.vercel.app/",
-      "tech": "Next.js, TypeScript, Django REST Framework, PostgreSQL, Radix UI",
-      "description": "Enterprise charity operations dashboard delivering real-time donation analytics, category allocations, audit trails, and fund transfers."
+      "tech": "Next.js, TypeScript, Django REST Framework, PostgreSQL, Radix UI, Recharts",
+      "description": "Enterprise charity operations and donation management platform independently architected on own accord for Jamia Mosque Committee. Features real-time donation analytics, category allocations, audit trails, and fund transfers. 100% complete and launch-ready."
     },
     {
       "name": "SeaFood Platform & Analytics Dashboard",
@@ -101,6 +104,12 @@
     "TypeScript & JavaScript",
     "TCP/IP, Routing & OSPF",
     "Cisco Switches & Routers",
+    "TP-Link Managed Switches (VLANs)",
+    "Ubiquiti UniFi Wireless APs",
+    "Panasonic KX-NS500 PBX & VoIP",
+    "Hikvision Biometrics & Access Control",
+    "Tally ERP Vendor Liaison",
+    "Public Address & Sound Systems",
     "Network Security & Firewalls",
     "PostgreSQL & MySQL",
     "Linux Systems (Debian/Ubuntu)",
@@ -115,7 +124,8 @@
   "skills_categorized": {
     "Backend & APIs": ["Python", "Django", "Django REST Framework", "Flask", "Celery", "RESTful API Architecture", "JWT", "Microservices"],
     "Frontend & Web": ["Next.js 15", "React 19", "TypeScript", "JavaScript (ES6+)", "Tailwind CSS", "Shadcn/UI", "Framer Motion", "HTML5/CSS3"],
-    "Networking & Security": ["TCP/IP", "OSPF", "BGP", "VLANs", "Subnetting", "Firewalls", "Cisco IOS", "Wireshark", "DNS/DHCP", "HAProxy"],
+    "Networking & Infrastructure": ["TCP/IP", "OSPF", "BGP", "802.1Q VLANs", "Cisco IOS", "TP-Link Managed Switches", "Ubiquiti UniFi APs", "Subnetting", "Wireshark", "DNS/DHCP", "HAProxy"],
+    "Telephony, Security & Enterprise": ["Panasonic KX-NS500 IP-PBX", "VoIP / SIP Extensions", "Hikvision Biometric Access Control", "Time & Attendance Systems", "Tally ERP Technical Liaison", "Mosque PA & Sound Engineering"],
     "Cloud, DevOps & Systems": ["Linux (Ubuntu, Debian, RHEL)", "AWS (EC2, S3, RDS)", "Oracle Cloud (OCI)", "Docker", "Nginx", "Gunicorn", "Git/GitHub", "Bash", "C (POSIX)"],
     "Databases": ["PostgreSQL", "MySQL", "SQLite", "Database Design & Optimization"]
   },
