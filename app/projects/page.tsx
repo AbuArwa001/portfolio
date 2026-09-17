@@ -44,20 +44,65 @@ const PROJECTS: Project[] = [
   {
     id: 1,
     title: "SUPKEM Digital Portal",
-    subtitle: "National Islamic Organisation Platform",
+    subtitle: "Supreme Council of Kenya Muslims National Platform",
     description:
-      "End-to-end digital presence for the Supreme Council of Kenya Muslims. Features a bi-lingual (EN/AR) news CMS, video management, prize/event pages, secure admin dashboard with Excel export, and a Quran Competition registration system with real-time capacity enforcement.",
+      "End-to-end digital presence for the Supreme Council of Kenya Muslims. Features a bi-lingual (EN/AR) news publishing engine, media center, nationwide executive leadership showcase, secure admin dashboard with Excel export, and a national Quran Competition registration portal with real-time capacity enforcement.",
     status: "Live",
     category: "Full-Stack",
-    tech: ["Next.js 15", "DRF", "PostgreSQL", "next-intl", "Tailwind CSS", "JWT"],
+    tech: ["Next.js 15", "Django REST Framework", "PostgreSQL", "next-intl", "Tailwind CSS", "JWT"],
     github: "https://github.com/AbuArwa001/supkem",
-    live: "https://www.supkem.org/en/",
-    image: "/SUPKEM/Home_hero.png",
+    live: "https://www.supkem.org/",
+    image: "/projects/supkem.png",
     featured: true,
     year: "2025–2026",
   },
   {
     id: 2,
+    title: "Langata Islamic Center",
+    subtitle: "Community Mosque & Digital Hub",
+    description:
+      "Full digital hub and web presence for Langata Islamic Center & Mosque. Features real-time donation drives, community announcements, prayer schedules, event management, and programme listings with a high-performance decoupled Next.js frontend and Python DRF REST API backend.",
+    status: "Live",
+    category: "Full-Stack",
+    tech: ["Next.js 15", "TypeScript", "Django REST Framework", "Python", "PostgreSQL", "Tailwind CSS"],
+    github: "https://github.com/AbuArwa001/LangataIslamicCenter",
+    live: "https://www.langataislamiccenter.org/",
+    image: "/projects/langata-islamic-center.png",
+    featured: true,
+    year: "2025–2026",
+  },
+  {
+    id: 3,
+    title: "jamiaGive Admin Dashboard",
+    subtitle: "Jamia Mosque Donation & Charity Operations Dashboard",
+    description:
+      "Feature-rich administrative dashboard for Jamia Mosque Nairobi's donation operations. Includes real-time donation tracking, structured fund categories, scheduled drives, secure inter-account transfers, and financial transaction audit logging — powered by a DRF REST API backend.",
+    status: "In Progress",
+    category: "Full-Stack",
+    tech: ["Next.js", "TypeScript", "Django REST Framework", "PostgreSQL", "Radix UI", "Tailwind CSS"],
+    github: "https://github.com/AbuArwa001/JMCAdminDashboard",
+    live: "https://jmc-admin-dashboard.vercel.app/",
+    image: "/projects/jmc-admin-dashboard.png",
+    featured: true,
+    year: "2025–Ongoing",
+  },
+  {
+    id: 4,
+    title: "SeaFood Platform & Analytics Dashboard",
+    subtitle: "E-Commerce & Real-Time Sales Analytics Dashboard",
+    description:
+      "Full-stack seafood commerce and supply platform featuring an executive analytics dashboard. Delivers inventory management, product cataloguing, order fulfilment tracking, real-time revenue analytics, and interactive data visualisations powered by a Python DRF API backend.",
+    status: "Live",
+    category: "Full-Stack",
+    tech: ["TypeScript", "Next.js", "Python", "Django REST Framework", "Recharts", "PostgreSQL"],
+    github: "https://github.com/AbuArwa001/seafood-dashboard",
+    live: "https://seafooddashboard.vercel.app/",
+    image: "/projects/seafood-dashboard.png",
+    featured: true,
+    year: "2025–2026",
+  },
+  {
+    id: 5,
     title: "Religious Attaché KSA",
     subtitle: "Embassy Digital Services Portal",
     description:
@@ -67,50 +112,8 @@ const PROJECTS: Project[] = [
     tech: ["Next.js", "Django REST Framework", "PostgreSQL", "Python", "Nginx"],
     github: "https://github.com/AbuArwa001/DRF_RELIGIOUS_ATTACHE",
     live: "https://www.religiousattacheksa.co.ke/en",
-    image: "/SUPKEM/VisualLegacy.png",
-    featured: true,
+    image: "/projects/langata-islamic-center.png",
     year: "2024–2025",
-  },
-  {
-    id: 3,
-    title: "jamiaGive Admin Dashboard",
-    subtitle: "Mosque Donation Management System",
-    description:
-      "Feature-rich administrative dashboard for Jamia Mosque Nairobi's donation operations. Includes real-time donation tracking, structured fund categories, scheduled drives, secure inter-account transfers, and full transaction history — powered by a DRF REST API backend.",
-    status: "In Progress",
-    category: "Full-Stack",
-    tech: ["Next.js", "TypeScript", "Django REST Framework", "PostgreSQL", "Shadcn/UI"],
-    github: "https://github.com/AbuArwa001/JMCAdminDashboard",
-    image: "/jamiaGive_admin_dashboard/dashboard.png",
-    featured: true,
-    year: "2025–Ongoing",
-  },
-  {
-    id: 4,
-    title: "Langata Islamic Center",
-    subtitle: "Community Mosque Website",
-    description:
-      "Full digital presence for the Langata Islamic Center, including event listings, content management for programmes, and a public-facing portal. Paired with a dedicated DRF REST API (lic_api) for dynamic content delivery.",
-    status: "Live",
-    category: "Full-Stack",
-    tech: ["Next.js", "TypeScript", "Django REST Framework", "Python", "PostgreSQL"],
-    github: "https://github.com/AbuArwa001/LangataIslamicCenter",
-    live: "https://www.langataislamiccenter.org/",
-    image: "/SUPKEM/Strategic_Focus.png",
-    year: "2025",
-  },
-  {
-    id: 5,
-    title: "SeaFood Platform",
-    subtitle: "E-Commerce & Analytics Dashboard",
-    description:
-      "Full-stack seafood e-commerce platform with a TypeScript analytics dashboard and a Python DRF backend. Features product cataloguing, order management, and real-time sales analytics with chart visualisations.",
-    status: "Completed",
-    category: "Full-Stack",
-    tech: ["TypeScript", "Next.js", "Python", "Django REST Framework", "Chart.js"],
-    github: "https://github.com/AbuArwa001/seafood-dashboard",
-    image: "/SUPKEM/NEWSPAGE.png",
-    year: "2025",
   },
   {
     id: 6,
@@ -494,7 +497,7 @@ export default function ProjectsPage() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-sm font-medium text-primary bg-primary/10 rounded-full border border-primary/20">
             <Network className="w-4 h-4" />
-            <span>6+ Years · 10+ Projects · 3 Live Platforms</span>
+            <span>6+ Years · 12+ Projects · 4 Live Production Platforms</span>
           </div>
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-foreground mb-5">
             Engineering{" "}
