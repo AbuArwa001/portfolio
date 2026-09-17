@@ -143,73 +143,195 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="grid grid-cols-1 md:grid-cols-2 gap-8"
           >
-            {/* Project 1 - In Progress */}
-            <motion.div variants={item} className="group relative rounded-3xl border border-border/50 bg-card overflow-hidden hover:border-primary/50 transition-colors shadow-sm">
-              <div className="aspect-video bg-muted relative overflow-hidden">
-                <Image 
-                  src="/jamiaGive_admin_dashboard/dashboard.png" 
-                  alt="jamiaGive Admin Dashboard" 
-                  fill 
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
-                <div className="absolute top-4 right-4">
-                  <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 bg-yellow-500/20 text-yellow-500 rounded-full border border-yellow-500/20 backdrop-blur-sm">
-                    In Progress
-                  </span>
+            {/* Project 1 - Langata Islamic Center */}
+            <motion.div variants={item} className="group relative rounded-3xl border border-border/50 bg-card overflow-hidden hover:border-primary/50 transition-colors shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="aspect-video bg-muted relative overflow-hidden">
+                  <Image 
+                    src="/projects/langata-islamic-center.png" 
+                    alt="Langata Islamic Center" 
+                    fill 
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute top-4 right-4">
+                    <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30 backdrop-blur-sm">
+                      Live
+                    </span>
+                  </div>
+                </div>
+                <div className="p-8 pb-4">
+                  <div className="flex gap-2 mb-4 flex-wrap">
+                    <span className="text-xs font-mono px-2 py-1 bg-primary/10 text-primary rounded-md border border-primary/20">Next.js 15</span>
+                    <span className="text-xs font-mono px-2 py-1 bg-primary/10 text-primary rounded-md border border-primary/20">DRF API</span>
+                    <span className="text-xs font-mono px-2 py-1 bg-primary/10 text-primary rounded-md border border-primary/20">PostgreSQL</span>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2 text-foreground group-hover:text-primary transition-colors">
+                    Langata Islamic Center
+                  </h3>
+                  <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+                    Full digital hub and web presence for Langata Islamic Center & Mosque. Features real-time donation drives, community announcements, prayer schedules, and programme management.
+                  </p>
                 </div>
               </div>
-              <div className="p-8">
-                <div className="flex gap-2 mb-4">
-                  <span className="text-xs font-mono px-2 py-1 bg-primary/10 text-primary rounded-md border border-primary/20">Next.js</span>
-                  <span className="text-xs font-mono px-2 py-1 bg-primary/10 text-primary rounded-md border border-primary/20">DRF</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-2">jamiaGive Admin Dashboard</h3>
-                <p className="text-muted-foreground mb-6 line-clamp-2">
-                  Building a robust administrative dashboard for managing donations and accounts. Features real-time tracking, structured categories, and secure transfers via a decoupled DRF backend.
-                </p>
-                <Link href="/projects" className="inline-flex items-center text-primary font-medium hover:underline">
-                  Read Case Study <ArrowRight className="ml-2 h-4 w-4" />
+              <div className="p-8 pt-0 flex items-center justify-between gap-4 mt-4 border-t border-border/30 pt-4">
+                <Link href="/projects" className="inline-flex items-center text-primary text-sm font-medium hover:underline">
+                  Case Study <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Link>
+                <a
+                  href="https://www.langataislamiccenter.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+                >
+                  Visit Live Portal <ArrowRight className="h-3.5 w-3.5" />
+                </a>
               </div>
             </motion.div>
 
-            {/* Project 2 */}
-            <motion.div variants={item} className="group relative rounded-3xl border border-border/50 bg-card overflow-hidden hover:border-primary/50 transition-colors shadow-sm">
-              <div className="aspect-video bg-muted relative overflow-hidden">
-                <Image 
-                  src="/SUPKEM/Home_hero.png" 
-                  alt="SUPKEM Platform" 
-                  fill 
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
-                <div className="absolute top-4 right-4">
-                  <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 bg-green-500/20 text-green-500 rounded-full border border-green-500/20 backdrop-blur-sm">
-                    Live
-                  </span>
+            {/* Project 2 - SUPKEM Digital Portal */}
+            <motion.div variants={item} className="group relative rounded-3xl border border-border/50 bg-card overflow-hidden hover:border-primary/50 transition-colors shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="aspect-video bg-muted relative overflow-hidden">
+                  <Image 
+                    src="/projects/supkem.png" 
+                    alt="SUPKEM Digital Portal" 
+                    fill 
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute top-4 right-4">
+                    <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30 backdrop-blur-sm">
+                      Live
+                    </span>
+                  </div>
+                </div>
+                <div className="p-8 pb-4">
+                  <div className="flex gap-2 mb-4 flex-wrap">
+                    <span className="text-xs font-mono px-2 py-1 bg-blue-500/10 text-blue-400 rounded-md border border-blue-500/20">Next.js 15</span>
+                    <span className="text-xs font-mono px-2 py-1 bg-blue-500/10 text-blue-400 rounded-md border border-blue-500/20">Django DRF</span>
+                    <span className="text-xs font-mono px-2 py-1 bg-blue-500/10 text-blue-400 rounded-md border border-blue-500/20">PostgreSQL</span>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2 text-foreground group-hover:text-primary transition-colors">
+                    SUPKEM Digital Portal
+                  </h3>
+                  <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+                    Comprehensive digital presence for the Supreme Council of Kenya Muslims featuring a bi-lingual news CMS, leadership directory, and national Quran Competition registration.
+                  </p>
                 </div>
               </div>
-              <div className="p-8">
-                <div className="flex gap-2 mb-4">
-                  <span className="text-xs font-mono px-2 py-1 bg-blue-500/10 text-blue-500 rounded-md border border-blue-500/20">Next.js</span>
-                  <span className="text-xs font-mono px-2 py-1 bg-blue-500/10 text-blue-500 rounded-md border border-blue-500/20">PostgreSQL</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-2">SUPKEM News & Admin</h3>
-                <p className="text-muted-foreground mb-6 line-clamp-2">
-                  Developed a comprehensive digital presence for SUPKEM featuring a dynamic news engine and a secure administrative dashboard for nationwide event management.
-                </p>
-                <Link href="/projects" className="inline-flex items-center text-blue-500 font-medium hover:underline">
-                  Read Case Study <ArrowRight className="ml-2 h-4 w-4" />
+              <div className="p-8 pt-0 flex items-center justify-between gap-4 mt-4 border-t border-border/30 pt-4">
+                <Link href="/projects" className="inline-flex items-center text-primary text-sm font-medium hover:underline">
+                  Case Study <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Link>
+                <a
+                  href="https://www.supkem.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all"
+                >
+                  Visit Live Portal <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            </motion.div>
+
+            {/* Project 3 - jamiaGive Admin Dashboard */}
+            <motion.div variants={item} className="group relative rounded-3xl border border-border/50 bg-card overflow-hidden hover:border-primary/50 transition-colors shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="aspect-video bg-muted relative overflow-hidden">
+                  <Image 
+                    src="/projects/jmc-admin-dashboard.png" 
+                    alt="jamiaGive Admin Dashboard" 
+                    fill 
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute top-4 right-4">
+                    <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 bg-yellow-500/20 text-yellow-500 rounded-full border border-yellow-500/30 backdrop-blur-sm">
+                      In Progress
+                    </span>
+                  </div>
+                </div>
+                <div className="p-8 pb-4">
+                  <div className="flex gap-2 mb-4 flex-wrap">
+                    <span className="text-xs font-mono px-2 py-1 bg-primary/10 text-primary rounded-md border border-primary/20">Next.js</span>
+                    <span className="text-xs font-mono px-2 py-1 bg-primary/10 text-primary rounded-md border border-primary/20">TypeScript</span>
+                    <span className="text-xs font-mono px-2 py-1 bg-primary/10 text-primary rounded-md border border-primary/20">DRF Backend</span>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2 text-foreground group-hover:text-primary transition-colors">
+                    jamiaGive Admin Dashboard
+                  </h3>
+                  <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+                    Enterprise administrative dashboard for Jamia Mosque Nairobi. Features real-time donation auditing, structured fund categories, and secure transfers via a decoupled DRF API.
+                  </p>
+                </div>
+              </div>
+              <div className="p-8 pt-0 flex items-center justify-between gap-4 mt-4 border-t border-border/30 pt-4">
+                <Link href="/projects" className="inline-flex items-center text-primary text-sm font-medium hover:underline">
+                  Case Study <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Link>
+                <a
+                  href="https://jmc-admin-dashboard.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-black transition-all"
+                >
+                  Live Demo <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            </motion.div>
+
+            {/* Project 4 - SeaFood Dashboard */}
+            <motion.div variants={item} className="group relative rounded-3xl border border-border/50 bg-card overflow-hidden hover:border-primary/50 transition-colors shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="aspect-video bg-muted relative overflow-hidden">
+                  <Image 
+                    src="/projects/seafood-dashboard.png" 
+                    alt="SeaFood Platform & Dashboard" 
+                    fill 
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute top-4 right-4">
+                    <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30 backdrop-blur-sm">
+                      Live
+                    </span>
+                  </div>
+                </div>
+                <div className="p-8 pb-4">
+                  <div className="flex gap-2 mb-4 flex-wrap">
+                    <span className="text-xs font-mono px-2 py-1 bg-sky-500/10 text-sky-400 rounded-md border border-sky-500/20">Next.js</span>
+                    <span className="text-xs font-mono px-2 py-1 bg-sky-500/10 text-sky-400 rounded-md border border-sky-500/20">Python DRF</span>
+                    <span className="text-xs font-mono px-2 py-1 bg-sky-500/10 text-sky-400 rounded-md border border-sky-500/20">Recharts</span>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2 text-foreground group-hover:text-primary transition-colors">
+                    SeaFood Logistics & Analytics
+                  </h3>
+                  <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+                    Full-stack seafood supply management platform and executive dashboard. Delivers live revenue analytics, inventory tracking, and order fulfillment visualisations.
+                  </p>
+                </div>
+              </div>
+              <div className="p-8 pt-0 flex items-center justify-between gap-4 mt-4 border-t border-border/30 pt-4">
+                <Link href="/projects" className="inline-flex items-center text-primary text-sm font-medium hover:underline">
+                  Case Study <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Link>
+                <a
+                  href="https://seafooddashboard.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-white transition-all"
+                >
+                  Live Demo <ArrowRight className="h-3.5 w-3.5" />
+                </a>
               </div>
             </motion.div>
           </motion.div>
           
-          <div className="mt-12 text-center">
+          <div className="mt-14 text-center">
              <Link href="/projects">
-                <Button variant="outline" size="lg" className="h-12 px-8">
-                  View All Work
+                <Button variant="outline" size="lg" className="h-12 px-8 text-base">
+                  View Full Portfolio & Case Studies <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
              </Link>
           </div>

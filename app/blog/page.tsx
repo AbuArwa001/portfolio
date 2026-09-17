@@ -10,16 +10,39 @@ type BlogPost = {
   read_time?: number;
 };
 
+const FALLBACK_POSTS: BlogPost[] = [
+  {
+    id: 1,
+    title: "Architecting Decoupled Next.js 15 & Django REST APIs for Scale",
+    slug: "architecting-decoupled-nextjs-and-django-apis",
+    content:
+      "Building high-performance web platforms requires a clean separation of concerns. In this article, we explore the architectural decisions behind coupling Next.js 15 App Router with a stateless Django REST Framework (DRF) backend, covering JWT authentication, SSL termination, and PostgreSQL connection pooling.",
+    created_at: "2026-03-01T00:00:00Z",
+    read_time: 5,
+  },
+  {
+    id: 2,
+    title: "Network Engineering Principles Every Backend Developer Should Know",
+    slug: "network-engineering-principles-for-backend-devs",
+    content:
+      "Software performance doesn't stop at the application layer. Understanding OSI Layer 3 through Layer 7 routing, TCP three-way handshake optimization, DNS propagation, and VPC isolation fundamentally changes how you design resilient distributed systems.",
+    created_at: "2026-02-15T00:00:00Z",
+    read_time: 6,
+  },
+];
+
 async function getPosts(): Promise<BlogPost[]> {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/blog/", {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+    const res = await fetch(`${apiUrl}/api/v1/blog/`, {
       cache: "no-store",
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(3000),
     });
-    if (!res.ok) return [];
-    return res.json();
+    if (!res.ok) return FALLBACK_POSTS;
+    const data = await res.json();
+    return Array.isArray(data) && data.length > 0 ? data : FALLBACK_POSTS;
   } catch {
-    return [];
+    return FALLBACK_POSTS;
   }
 }
 
