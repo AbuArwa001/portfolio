@@ -111,12 +111,12 @@ export function CVDocumentViewer({ initialFormat = "ats", data }: CVDocumentView
   const plainText = generatePlainText();
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 py-12 px-4 sm:px-6 transition-colors">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 py-12 px-4 sm:px-6 transition-colors print:p-0 print:m-0 print:bg-white print:min-h-0">
       {/* Floating Toolbar */}
       <CVToolbar format={format} onFormatChange={setFormat} plainText={plainText} />
 
       {/* Render Document based on format */}
-      <div className="max-w-[850px] mx-auto mt-12 mb-16">
+      <div className="max-w-[850px] mx-auto mt-12 mb-16 print:m-0 print:p-0 print:max-w-full">
         {format === "ats" ? (
           <ATSResumeView data={data} />
         ) : (
@@ -127,18 +127,25 @@ export function CVDocumentViewer({ initialFormat = "ats", data }: CVDocumentView
       {/* Print Specific CSS Rules */}
       <style jsx global>{`
         @media print {
-          .no-print {
+          nav,
+          header:not(.cv-header),
+          footer,
+          .no-print,
+          [data-no-print] {
             display: none !important;
           }
+          html,
           body {
             background: #ffffff !important;
             color: #000000 !important;
             margin: 0 !important;
             padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           @page {
             size: A4 portrait;
-            margin: 12mm 15mm 12mm 15mm;
+            margin: 10mm 12mm 10mm 12mm;
           }
           .ats-document,
           .detailed-document {
@@ -185,7 +192,7 @@ function ATSResumeView({ data }: { data: ResumeData }) {
       }}
     >
       {/* ATS Header (Single Column, strictly centered or left-aligned without floating elements) */}
-      <header className="border-b-2 border-slate-800 pb-4 mb-5 text-center page-break-inside-avoid">
+      <header className="cv-header border-b-2 border-slate-800 pb-4 mb-5 text-center page-break-inside-avoid">
         <h1
           className="text-3xl font-extrabold tracking-tight uppercase text-slate-950"
           style={{ letterSpacing: "0.5px" }}
@@ -361,7 +368,7 @@ function DetailedCVView({ data }: { data: ResumeData }) {
       }}
     >
       {/* Executive Header */}
-      <header className="border-b-2 border-emerald-600 pb-6 mb-8 page-break-inside-avoid">
+      <header className="cv-header border-b-2 border-emerald-600 pb-6 mb-8 page-break-inside-avoid">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">

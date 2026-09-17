@@ -31,7 +31,7 @@ export default function NavBar() {
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 print:hidden ${
           scrolled
             ? "bg-background/80 backdrop-blur-xl border-b border-border/60 shadow-sm"
             : "bg-transparent"

@@ -31,7 +31,7 @@ export function CVToolbar({ format, onFormatChange, plainText }: CVToolbarProps)
   };
 
   return (
-    <div className="no-print fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-4xl px-4 pointer-events-none">
+    <div className="no-print print:hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-4xl px-4 pointer-events-none">
       <div className="pointer-events-auto bg-white/95 backdrop-blur-md dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl p-2.5 flex flex-wrap items-center justify-between gap-3 transition-all">
         {/* Left: Back + Format Selector */}
         <div className="flex items-center gap-2">
