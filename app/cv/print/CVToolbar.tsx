@@ -44,32 +44,32 @@ export function CVToolbar({ format, onFormatChange, plainText }: CVToolbarProps)
 
           <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
             <button
-              onClick={() => onFormatChange("ats")}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                format === "ats"
+              onClick={() => onFormatChange("detailed")}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                format === "detailed"
                   ? "bg-white dark:bg-slate-950 text-emerald-700 dark:text-emerald-400 shadow-sm"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <FileText className="h-3.5 w-3.5" />
-              ATS Resume
+              <Layers className="h-3.5 w-3.5" />
+              Webpage Layout (CV)
               <span className="text-[10px] font-normal px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-mono">
-                1-2 Pg
+                Dossier
               </span>
             </button>
 
             <button
-              onClick={() => onFormatChange("detailed")}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                format === "detailed"
+              onClick={() => onFormatChange("ats")}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                format === "ats"
                   ? "bg-white dark:bg-slate-950 text-blue-700 dark:text-blue-400 shadow-sm"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Layers className="h-3.5 w-3.5" />
-              Detailed CV
+              <FileText className="h-3.5 w-3.5" />
+              ATS Single-Column
               <span className="text-[10px] font-normal px-1.5 py-0.2 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 font-mono">
-                Dossier
+                1-2 Pg
               </span>
             </button>
           </div>

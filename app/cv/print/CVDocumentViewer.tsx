@@ -11,7 +11,7 @@ interface CVDocumentViewerProps {
   data: ResumeData;
 }
 
-export function CVDocumentViewer({ initialFormat = "ats", data }: CVDocumentViewerProps) {
+export function CVDocumentViewer({ initialFormat = "detailed", data }: CVDocumentViewerProps) {
   const [format, setFormat] = useState<"ats" | "detailed">(initialFormat);
 
   // Generate clean plain-text ATS copy for applicant tracking systems
@@ -376,98 +376,107 @@ function DetailedCVView({ data }: { data: ResumeData }) {
         fontSize: "10.5pt",
       }}
     >
-      {/* Executive Header */}
-      <div className="cv-header detailed-header border-b-2 border-emerald-600 pb-6 mb-8 page-break-inside-avoid break-inside-avoid">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
-              {data.profile.name}
-            </h1>
-            <p className="text-lg font-bold text-emerald-700 mt-1">
-              {data.profile.role}
-            </p>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Comprehensive Engineering Dossier &amp; Curriculum Vitae
-            </p>
+      {/* Executive Header with Avatar */}
+      <div className="cv-header detailed-header border-b-2 border-emerald-600/70 pb-6 mb-6 page-break-inside-avoid break-inside-avoid">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div className="flex items-center gap-4">
+            <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-md bg-slate-100 shrink-0 relative">
+              <img
+                src={data.profile.avatar || "/profile.jpg"}
+                alt={data.profile.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  Verified Engineer
+                </span>
+                <span className="text-[11px] font-mono text-slate-500">
+                  {data.profile.location || "Nairobi, Kenya"}
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight mt-1">
+                {data.profile.name}
+              </h1>
+              <p className="text-sm font-bold text-emerald-700 uppercase tracking-wide mt-0.5">
+                {data.profile.role}
+              </p>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Engineering Curriculum Vitae &amp; Systems Architecture Dossier
+              </p>
+            </div>
           </div>
 
-          <div className="text-xs sm:text-right space-y-1 text-slate-600 border-l-2 md:border-l-0 md:border-r-2 border-emerald-500/40 pl-3 md:pl-0 md:pr-3">
-            <p>
-              <span className="font-bold text-slate-900">Location:</span>{" "}
-              {data.profile.location}
+          <div className="text-xs space-y-1.5 text-slate-700 bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 sm:text-right shrink-0">
+            <p className="flex items-center sm:justify-end gap-1.5">
+              <span className="font-bold text-slate-900">Email:</span>
+              <a href={`mailto:${data.contact.email}`} className="text-emerald-700 hover:underline">{data.contact.email}</a>
             </p>
-            <p>
-              <span className="font-bold text-slate-900">Phone:</span>{" "}
-              {data.profile.phone}
+            <p className="flex items-center sm:justify-end gap-1.5">
+              <span className="font-bold text-slate-900">Phone:</span>
+              <span>{data.profile.phone}</span>
             </p>
-            <p>
-              <span className="font-bold text-slate-900">Email:</span>{" "}
-              <a
-                href={`mailto:${data.contact.email}`}
-                className="text-emerald-700 hover:underline"
-              >
-                {data.contact.email}
-              </a>
+            <p className="flex items-center sm:justify-end gap-1.5">
+              <span className="font-bold text-slate-900">LinkedIn:</span>
+              <a href={data.contact.linkedin} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline">{data.contact.linkedin.replace("https://", "")}</a>
             </p>
-            <p>
-              <span className="font-bold text-slate-900">LinkedIn:</span>{" "}
-              <a
-                href={data.contact.linkedin}
-                target="_blank"
-                rel="noreferrer"
-                className="text-emerald-700 hover:underline"
-              >
-                {data.contact.linkedin.replace("https://", "")}
-              </a>
-            </p>
-            <p>
-              <span className="font-bold text-slate-900">GitHub:</span>{" "}
-              <a
-                href={data.contact.github}
-                target="_blank"
-                rel="noreferrer"
-                className="text-emerald-700 hover:underline"
-              >
-                {data.contact.github.replace("https://", "")}
-              </a>
+            <p className="flex items-center sm:justify-end gap-1.5">
+              <span className="font-bold text-slate-900">GitHub:</span>
+              <a href={data.contact.github} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline">{data.contact.github.replace("https://", "")}</a>
             </p>
             {data.contact.website && (
-              <p>
-                <span className="font-bold text-slate-900">Portfolio:</span>{" "}
-                <a
-                  href={data.contact.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-emerald-700 hover:underline"
-                >
-                  {data.contact.website.replace("https://", "")}
-                </a>
+              <p className="flex items-center sm:justify-end gap-1.5">
+                <span className="font-bold text-slate-900">Portfolio:</span>
+                <a href={data.contact.website} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline">{data.contact.website.replace("https://", "")}</a>
               </p>
             )}
+          </div>
+        </div>
+
+        {/* 3 Metric Stat Highlights (Exact Match to Webpage) */}
+        <div className="grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-slate-200/80">
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center">
+            <p className="text-xl font-black text-emerald-600">6+ Years</p>
+            <p className="text-[10px] uppercase font-bold text-slate-600 mt-0.5 tracking-wider">
+              Enterprise IT &amp; Web Systems
+            </p>
+          </div>
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center">
+            <p className="text-xl font-black text-blue-600">4 Flagship</p>
+            <p className="text-[10px] uppercase font-bold text-slate-600 mt-0.5 tracking-wider">
+              Live National Deployments
+            </p>
+          </div>
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center">
+            <p className="text-xl font-black text-teal-600">Dual Domain</p>
+            <p className="text-[10px] uppercase font-bold text-slate-600 mt-0.5 tracking-wider">
+              Networking &amp; Full-Stack Dev
+            </p>
           </div>
         </div>
       </div>
 
       {/* Executive Summary */}
       {data.profile.bio && (
-        <section className="mb-8 page-break-inside-avoid">
-          <div className="flex items-center gap-2 mb-3">
+        <section className="mb-6 page-break-inside-avoid break-inside-avoid">
+          <div className="flex items-center gap-2 mb-2">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
-            <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
+            <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
               Executive Profile &amp; Engineering Philosophy
             </h2>
           </div>
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-[10pt] text-slate-800 leading-relaxed text-justify">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-[10pt] text-slate-800 leading-relaxed text-justify">
             {data.profile.bio}
           </div>
         </section>
       )}
 
       {/* Comprehensive Skills Matrix */}
-      <section className="mb-8 page-break-inside-avoid">
+      <section className="mb-6 page-break-inside-avoid break-inside-avoid">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
-          <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
+          <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
             Technical Competencies &amp; Systems Architecture Matrix
           </h2>
         </div>
@@ -476,17 +485,29 @@ function DetailedCVView({ data }: { data: ResumeData }) {
             Object.entries(data.skills_categorized).map(([category, skills]) => (
               <div
                 key={category}
-                className="p-3.5 rounded-lg border border-slate-200 bg-white"
+                className="p-3.5 rounded-xl border border-slate-200 bg-white"
               >
-                <h3 className="font-extrabold text-emerald-800 text-xs uppercase tracking-wider mb-1.5">
+                <h3 className="font-extrabold text-emerald-800 text-xs uppercase tracking-wider mb-2">
                   {category}
                 </h3>
-                <p className="text-slate-700 leading-relaxed">{skills.join(" • ")}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {skills.map((s, idx) => (
+                    <span key={idx} className="px-2.5 py-0.5 rounded-lg text-xs font-medium bg-slate-100 border border-slate-200 text-slate-800">
+                      {s}
+                    </span>
+                  ))}
+                </div>
               </div>
             ))
           ) : (
-            <div className="p-3.5 rounded-lg border border-slate-200 bg-white md:col-span-2">
-              <p className="text-slate-700 leading-relaxed">{data.skills.join(" • ")}</p>
+            <div className="p-3.5 rounded-xl border border-slate-200 bg-white md:col-span-2">
+              <div className="flex flex-wrap gap-1.5">
+                {data.skills.map((s, idx) => (
+                  <span key={idx} className="px-2.5 py-0.5 rounded-lg text-xs font-medium bg-slate-100 border border-slate-200 text-slate-800">
+                    {s}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -17,7 +17,7 @@ export default async function PrintCVPage({ searchParams }: PrintCVPageProps) {
   const d = await getResumeData();
   const resolvedParams = searchParams ? await searchParams : undefined;
   const paramVal = (resolvedParams?.format || resolvedParams?.type || "").toLowerCase();
-  const initialFormat = paramVal === "detailed" ? "detailed" : "ats";
+  const initialFormat = paramVal === "ats" ? "ats" : "detailed";
 
   return <CVDocumentViewer initialFormat={initialFormat} data={d} />;
 }
