@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Printer, FileText, Check, ArrowLeft, Layers, Copy } from "lucide-react";
+import { Printer, FileText, Check, ArrowLeft, Layers, Copy, Download } from "lucide-react";
 
 interface CVToolbarProps {
   format: "ats" | "detailed";
@@ -79,7 +79,7 @@ export function CVToolbar({ format, onFormatChange, plainText }: CVToolbarProps)
         <div className="flex items-center gap-2">
           <button
             onClick={handleCopy}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             title="Copy plain text formatted for applicant tracking systems"
           >
             {copied ? (
@@ -95,12 +95,25 @@ export function CVToolbar({ format, onFormatChange, plainText }: CVToolbarProps)
             )}
           </button>
 
+          {/* Direct File Download */}
+          <a
+            href="/Khalfan_Athman_Resume.pdf"
+            download="Khalfan_Athman_Resume.pdf"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
+            title="Directly download PDF file"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>Download PDF</span>
+          </a>
+
+          {/* Native Print / Save to PDF */}
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
+            title="Open browser print dialog to print or save as PDF"
           >
             <Printer className="h-3.5 w-3.5" />
-            Print / Save as PDF
+            <span>Print / Save PDF</span>
           </button>
         </div>
       </div>

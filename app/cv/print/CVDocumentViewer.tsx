@@ -116,7 +116,7 @@ export function CVDocumentViewer({ initialFormat = "ats", data }: CVDocumentView
       <CVToolbar format={format} onFormatChange={setFormat} plainText={plainText} />
 
       {/* Render Document based on format */}
-      <div className="max-w-[850px] mx-auto mt-12 mb-16 print:m-0 print:p-0 print:max-w-full">
+      <div className="max-w-[850px] mx-auto mt-12 mb-16 print:m-0 print:p-0 print:max-w-none print:w-full">
         {format === "ats" ? (
           <ATSResumeView data={data} />
         ) : (
@@ -124,15 +124,23 @@ export function CVDocumentViewer({ initialFormat = "ats", data }: CVDocumentView
         )}
       </div>
 
-      {/* Print Specific CSS Rules */}
-      <style jsx global>{`
+      {/* Print Specific CSS Rules (Injected safely) */}
+      <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           nav,
-          header:not(.cv-header),
+          .site-header,
           footer,
           .no-print,
-          [data-no-print] {
+          [data-no-print],
+          aside {
             display: none !important;
+          }
+          .cv-header,
+          .ats-header,
+          .detailed-header {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
           }
           html,
           body {
@@ -158,12 +166,13 @@ export function CVDocumentViewer({ initialFormat = "ats", data }: CVDocumentView
             background: #ffffff !important;
             color: #000000 !important;
           }
-          .page-break-inside-avoid {
+          .page-break-inside-avoid,
+          .break-inside-avoid {
             break-inside: avoid !important;
             page-break-inside: avoid !important;
           }
         }
-      `}</style>
+      `}} />
     </div>
   );
 }
@@ -184,52 +193,52 @@ function ATSResumeView({ data }: { data: ResumeData }) {
   return (
     <div
       id="ats-resume-doc"
-      className="ats-document bg-white text-slate-900 font-sans p-8 sm:p-12 shadow-xl rounded-lg border border-slate-200 transition-all leading-relaxed"
+      className="ats-document bg-white text-slate-900 font-sans p-8 sm:p-12 shadow-xl rounded-lg border border-slate-200 transition-all leading-relaxed print:p-0 print:m-0 print:border-none print:shadow-none print:rounded-none print:w-full print:max-w-none print:bg-white"
       style={{
         fontFamily: "Calibri, Arial, Helvetica, 'Segoe UI', sans-serif",
-        fontSize: "10.5pt",
+        fontSize: "10pt",
         color: "#111827",
       }}
     >
-      {/* ATS Header (Single Column, strictly centered or left-aligned without floating elements) */}
-      <header className="cv-header border-b-2 border-slate-800 pb-4 mb-5 text-center page-break-inside-avoid">
+      {/* ATS Header (Candidate Profile - Always Visible in Print) */}
+      <div className="cv-header ats-header border-b-2 border-slate-900 pb-3 mb-4 text-center page-break-inside-avoid break-inside-avoid">
         <h1
-          className="text-3xl font-extrabold tracking-tight uppercase text-slate-950"
+          className="text-2xl sm:text-3xl font-black tracking-tight uppercase text-slate-950"
           style={{ letterSpacing: "0.5px" }}
         >
           {data.profile.name}
         </h1>
-        <p className="text-base font-bold text-slate-800 mt-1 uppercase tracking-wide">
+        <p className="text-sm sm:text-base font-bold text-slate-800 mt-0.5 uppercase tracking-wide">
           {data.profile.role}
         </p>
-        <div className="text-xs text-slate-700 mt-2 font-medium flex flex-wrap justify-center gap-x-2 gap-y-1">
+        <div className="text-[9pt] sm:text-xs text-slate-700 mt-1.5 font-medium flex flex-wrap justify-center items-center gap-x-2 gap-y-0.5">
           {contactParts.map((part, idx) => (
             <span key={idx} className="inline-flex items-center">
-              {idx > 0 && <span className="mx-1.5 text-slate-400">|</span>}
+              {idx > 0 && <span className="mx-1.5 text-slate-400 font-bold">|</span>}
               <span>{part}</span>
             </span>
           ))}
         </div>
-      </header>
+      </div>
 
       {/* Professional Summary */}
       {data.profile.bio && (
-        <section className="mb-5 page-break-inside-avoid">
-          <h2 className="text-xs font-extrabold uppercase tracking-widest text-slate-950 border-b border-slate-400 pb-1 mb-2">
+        <section className="mb-4 page-break-inside-avoid break-inside-avoid">
+          <h2 className="text-xs font-black uppercase tracking-widest text-slate-950 border-b border-slate-700 pb-0.5 mb-1.5">
             PROFESSIONAL SUMMARY
           </h2>
-          <p className="text-justify text-[10pt] leading-normal text-slate-800">
+          <p className="text-justify text-[9.5pt] leading-normal text-slate-800">
             {data.profile.bio}
           </p>
         </section>
       )}
 
       {/* Core Technical Competencies */}
-      <section className="mb-5 page-break-inside-avoid">
-        <h2 className="text-xs font-extrabold uppercase tracking-widest text-slate-950 border-b border-slate-400 pb-1 mb-2">
+      <section className="mb-4 page-break-inside-avoid break-inside-avoid">
+        <h2 className="text-xs font-black uppercase tracking-widest text-slate-950 border-b border-slate-700 pb-0.5 mb-1.5">
           CORE TECHNICAL COMPETENCIES
         </h2>
-        <div className="space-y-1.5 text-[9.5pt]">
+        <div className="space-y-1 text-[9pt]">
           {data.skills_categorized ? (
             Object.entries(data.skills_categorized).map(([cat, skills]) => (
               <div key={cat} className="flex flex-col sm:flex-row sm:items-baseline">
@@ -246,27 +255,27 @@ function ATSResumeView({ data }: { data: ResumeData }) {
       </section>
 
       {/* Professional Experience */}
-      <section className="mb-5">
-        <h2 className="text-xs font-extrabold uppercase tracking-widest text-slate-950 border-b border-slate-400 pb-1 mb-3">
+      <section className="mb-4">
+        <h2 className="text-xs font-black uppercase tracking-widest text-slate-950 border-b border-slate-700 pb-0.5 mb-2">
           PROFESSIONAL EXPERIENCE
         </h2>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {data.experience.map((job, i) => (
-            <div key={i} className="page-break-inside-avoid">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-1">
+            <div key={i} className="page-break-inside-avoid break-inside-avoid">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-0.5">
                 <div>
-                  <span className="font-extrabold text-slate-950 text-[10.5pt]">
+                  <span className="font-black text-slate-950 text-[10pt]">
                     {job.title}
                   </span>{" "}
-                  <span className="font-medium text-slate-700 text-[10pt]">
+                  <span className="font-medium text-slate-700 text-[9.5pt]">
                     — {job.company}
                   </span>
                 </div>
-                <div className="text-[9.5pt] font-semibold text-slate-600 sm:text-right">
+                <div className="text-[9pt] font-semibold text-slate-600 sm:text-right">
                   {job.period} | {job.location}
                 </div>
               </div>
-              <ul className="list-disc ml-5 space-y-1 text-[9.5pt] text-slate-800 leading-snug">
+              <ul className="list-disc ml-5 space-y-0.5 text-[9pt] text-slate-800 leading-snug">
                 {job.achievements.filter(Boolean).map((ach, j) => (
                   <li key={j}>{ach}</li>
                 ))}
@@ -278,26 +287,26 @@ function ATSResumeView({ data }: { data: ResumeData }) {
 
       {/* Key Engineering Projects */}
       {data.projects && data.projects.length > 0 && (
-        <section className="mb-5">
-          <h2 className="text-xs font-extrabold uppercase tracking-widest text-slate-950 border-b border-slate-400 pb-1 mb-3">
+        <section className="mb-4">
+          <h2 className="text-xs font-black uppercase tracking-widest text-slate-950 border-b border-slate-700 pb-0.5 mb-2">
             KEY ENGINEERING PROJECTS
           </h2>
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {data.projects.map((proj, i) => (
-              <div key={i} className="page-break-inside-avoid text-[9.5pt]">
+              <div key={i} className="page-break-inside-avoid break-inside-avoid text-[9pt]">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline font-bold text-slate-950">
                   <span>
                     {proj.name} —{" "}
                     <span className="font-normal text-slate-700">{proj.role}</span>
                   </span>
-                  <span className="text-xs text-slate-600 font-normal">
+                  <span className="text-[8.5pt] text-slate-600 font-normal">
                     {proj.period}
                   </span>
                 </div>
-                <div className="text-slate-600 text-[9pt] font-mono">
-                  URL: {proj.url} | Stack: {proj.tech}
+                <div className="text-slate-600 text-[8.5pt] font-mono">
+                  Stack: {proj.tech}
                 </div>
-                <p className="text-slate-800 text-[9.5pt] mt-0.5 leading-tight">
+                <p className="text-slate-800 text-[9pt] mt-0.5 leading-tight">
                   {proj.description}
                 </p>
               </div>
@@ -307,21 +316,21 @@ function ATSResumeView({ data }: { data: ResumeData }) {
       )}
 
       {/* Education */}
-      <section className="mb-5 page-break-inside-avoid">
-        <h2 className="text-xs font-extrabold uppercase tracking-widest text-slate-950 border-b border-slate-400 pb-1 mb-2">
+      <section className="mb-4 page-break-inside-avoid break-inside-avoid">
+        <h2 className="text-xs font-black uppercase tracking-widest text-slate-950 border-b border-slate-700 pb-0.5 mb-1.5">
           EDUCATION
         </h2>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {data.education.map((edu, i) => (
             <div
               key={i}
-              className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline text-[9.5pt]"
+              className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline text-[9pt]"
             >
               <div>
                 <span className="font-bold text-slate-950">{edu.degree}</span>
                 <span className="text-slate-700"> — {edu.school}</span>
               </div>
-              <span className="text-slate-600 text-[9pt] font-medium">
+              <span className="text-slate-600 text-[8.5pt] font-medium">
                 {edu.period}
               </span>
             </div>
@@ -330,11 +339,11 @@ function ATSResumeView({ data }: { data: ResumeData }) {
       </section>
 
       {/* Certifications & Badges */}
-      <section className="page-break-inside-avoid">
-        <h2 className="text-xs font-extrabold uppercase tracking-widest text-slate-950 border-b border-slate-400 pb-1 mb-2">
+      <section className="page-break-inside-avoid break-inside-avoid">
+        <h2 className="text-xs font-black uppercase tracking-widest text-slate-950 border-b border-slate-700 pb-0.5 mb-1.5">
           CERTIFICATIONS &amp; CREDENTIALS
         </h2>
-        <ul className="list-disc ml-5 space-y-1 text-[9.5pt] text-slate-800">
+        <ul className="list-disc ml-5 space-y-0.5 text-[9pt] text-slate-800">
           {data.certifications.map((cert, i) => (
             <li key={i}>
               <span className="font-bold text-slate-950">{cert.name}</span> —{" "}
@@ -361,14 +370,14 @@ function DetailedCVView({ data }: { data: ResumeData }) {
   return (
     <div
       id="detailed-cv-doc"
-      className="detailed-document bg-white text-slate-900 font-sans p-8 sm:p-14 shadow-2xl rounded-xl border border-slate-200 transition-all leading-relaxed"
+      className="detailed-document bg-white text-slate-900 font-sans p-8 sm:p-14 shadow-2xl rounded-xl border border-slate-200 transition-all leading-relaxed print:p-0 print:m-0 print:border-none print:shadow-none print:rounded-none print:w-full print:max-w-none print:bg-white"
       style={{
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         fontSize: "10.5pt",
       }}
     >
       {/* Executive Header */}
-      <header className="cv-header border-b-2 border-emerald-600 pb-6 mb-8 page-break-inside-avoid">
+      <div className="cv-header detailed-header border-b-2 border-emerald-600 pb-6 mb-8 page-break-inside-avoid break-inside-avoid">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
@@ -437,7 +446,7 @@ function DetailedCVView({ data }: { data: ResumeData }) {
             )}
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Executive Summary */}
       {data.profile.bio && (

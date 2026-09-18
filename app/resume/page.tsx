@@ -125,18 +125,30 @@ export default function ResumePage() {
 
         {/* Download Action Hub */}
         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-          {/* ATS Resume Download Button */}
+          {/* Direct PDF Resume Download Button */}
+          <a
+            href="/Khalfan_Athman_Resume.pdf"
+            download="Khalfan_Athman_Resume.pdf"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-[0_0_20px_-6px] shadow-emerald-600/50 transition-all hover:scale-[1.02] cursor-pointer"
+            title="Download verified ATS-ready PDF resume"
+          >
+            <Download className="h-4 w-4" />
+            <span>Download PDF</span>
+            <span className="text-[10px] font-mono bg-emerald-700/80 px-1.5 py-0.5 rounded-full text-emerald-100">
+              PDF
+            </span>
+          </a>
+
+          {/* Interactive ATS Resume & Print Hub */}
           <a
             href="/cv/ats"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-[0_0_20px_-6px] shadow-emerald-600/50 transition-all hover:scale-[1.02]"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-border/80 bg-card hover:bg-accent text-foreground font-semibold text-xs transition-all hover:scale-[1.02]"
+            title="Open interactive ATS-friendly document viewer and printer"
           >
-            <Download className="h-4 w-4" />
-            <span>Download ATS Resume</span>
-            <span className="text-[10px] font-mono bg-emerald-700/80 px-1.5 py-0.5 rounded-full text-emerald-100">
-              1-2 Pg
-            </span>
+            <FileText className="h-4 w-4 text-emerald-500" />
+            <span>ATS Resume (1-2 Pg)</span>
           </a>
 
           {/* Detailed CV Download Button */}
@@ -144,10 +156,11 @@ export default function ResumePage() {
             href="/cv/detailed"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-foreground text-white font-bold text-sm border border-slate-700/60 shadow-md transition-all hover:scale-[1.02]"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700/60 shadow-md transition-all hover:scale-[1.02]"
+            title="Open comprehensive engineering curriculum vitae dossier"
           >
             <Layers className="h-4 w-4 text-blue-400" />
-            <span>Detailed Engineering CV</span>
+            <span>Detailed CV</span>
             <span className="text-[10px] font-mono bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded-full">
               Dossier
             </span>

@@ -228,11 +228,21 @@
 /* Print Styles for Clean ATS Resume & CV PDF Generation */
 @media print {
   nav,
-  header,
+  .site-header,
   footer,
   .no-print,
-  [data-no-print] {
+  [data-no-print],
+  aside {
     display: none !important;
+  }
+
+  /* Explicitly ensure CV / Resume candidate header is visible and prominent */
+  .cv-header,
+  .ats-header,
+  .detailed-header {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
   html,
@@ -252,22 +262,32 @@
     background: transparent !important;
   }
 
+  /* Reset document containers for full-width print without margins/shadows */
+  .ats-document,
+  .detailed-document,
   .print-clean {
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
     margin: 0 !important;
     max-width: 100% !important;
+    width: 100% !important;
     background: #ffffff !important;
   }
 
   @page {
     size: A4 portrait;
-    margin: 12mm 12mm 12mm 12mm;
+    margin: 10mm 12mm 10mm 12mm;
   }
 
-  .page-break-inside-avoid {
+  .page-break-inside-avoid,
+  .break-inside-avoid {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
