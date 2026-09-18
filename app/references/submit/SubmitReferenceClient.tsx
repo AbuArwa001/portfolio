@@ -68,6 +68,7 @@ export default function SubmitReferenceClient() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<"form" | "preview">("form");
 
   // Pre-fill from query params if Khalfan provided them in the invite link
   useEffect(() => {
@@ -131,9 +132,9 @@ export default function SubmitReferenceClient() {
   };
 
   return (
-    <div className="relative min-h-screen bg-background selection:bg-primary/30 py-28 px-4 sm:px-6">
+    <div className="relative min-h-screen bg-background selection:bg-primary/30 pt-24 pb-16 sm:py-28 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
       {/* Ambient background glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] opacity-20 pointer-events-none -z-10">
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[350px] sm:h-[450px] opacity-20 pointer-events-none -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-violet-600/40 via-primary/30 to-sky-500/20 blur-[130px] rounded-full" />
       </div>
 
@@ -205,28 +206,63 @@ export default function SubmitReferenceClient() {
             /* ── Form + Live Preview Grid ── */
             <div>
               {/* Header */}
-              <div className="text-center max-w-2xl mx-auto mb-12">
-                <div className="inline-flex items-center gap-2 px-3 py-1 mb-4 text-xs font-medium text-primary bg-primary/10 rounded-full border border-primary/20">
+              <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12 px-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 sm:mb-4 text-xs font-medium text-primary bg-primary/10 rounded-full border border-primary/20">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Professional Endorsement Portal</span>
                 </div>
-                <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-foreground mb-4">
+                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground mb-3 sm:mb-4 leading-tight">
                   Referee <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-400">Endorsement</span> Form
                 </h1>
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                <p className="text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed">
                   Thank you for taking a moment to provide a verified professional testimonial for
                   <strong> Khalfan Athman</strong>. Your feedback highlights real-world technical impact and work ethic.
                 </p>
               </div>
 
+              {/* Mobile View Toggle (Visible only on < lg screens) */}
+              <div className="lg:hidden flex items-center justify-center p-1 mb-6 rounded-2xl bg-card/90 backdrop-blur-md border border-border/80 max-w-sm mx-auto shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setMobileTab("form")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    mobileTab === "form"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>1. Write Details</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileTab("preview")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    mobileTab === "preview"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>2. Live Preview</span>
+                  {formData.name.trim() && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  )}
+                </button>
+              </div>
+
               {/* Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
                 {/* ── Left: The Form ── */}
-                <div className="lg:col-span-7 rounded-3xl border border-border/60 bg-card/70 backdrop-blur-xl p-6 sm:p-8 shadow-xl">
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                <div
+                  className={`lg:col-span-7 rounded-3xl border border-border/60 bg-card/70 backdrop-blur-xl p-5 sm:p-8 shadow-xl ${
+                    mobileTab === "preview" ? "hidden lg:block" : "block"
+                  }`}
+                >
+                  <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
                     {/* Error Banner */}
                     {error && (
-                      <div className="flex items-start gap-3 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-xs leading-relaxed">
+                      <div className="flex items-start gap-3 p-3.5 sm:p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-xs leading-relaxed">
                         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                         <span>{error}</span>
                       </div>
@@ -253,7 +289,7 @@ export default function SubmitReferenceClient() {
                             placeholder="e.g. Eng. Ahmed Salim"
                             value={formData.name}
                             onChange={(e) => handleChange("name", e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background/60 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                            className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
                           />
                         </div>
 
@@ -267,7 +303,7 @@ export default function SubmitReferenceClient() {
                             placeholder="e.g. Lead Infrastructure Architect"
                             value={formData.title}
                             onChange={(e) => handleChange("title", e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background/60 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                            className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
                           />
                         </div>
                       </div>
@@ -282,7 +318,7 @@ export default function SubmitReferenceClient() {
                           placeholder="e.g. SUPKEM ICT Directorate or Jamia Mosque Committee"
                           value={formData.company}
                           onChange={(e) => handleChange("company", e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background/60 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                          className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
                         />
                       </div>
                     </div>
@@ -307,19 +343,19 @@ export default function SubmitReferenceClient() {
                           placeholder="e.g. Direct Supervisor, Project Director, or Lead Mentor"
                           value={formData.relationship}
                           onChange={(e) => handleChange("relationship", e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background/60 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                          className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
                         />
                       </div>
 
                       {/* Quick presets */}
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        <span className="text-[10px] text-muted-foreground self-center mr-1">Quick picks:</span>
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-1">
+                        <span className="text-[11px] text-muted-foreground self-center mr-1">Quick picks:</span>
                         {RELATIONSHIP_PRESETS.map((preset) => (
                           <button
                             key={preset}
                             type="button"
                             onClick={() => handleChange("relationship", preset)}
-                            className={`text-[10px] px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                            className={`text-xs sm:text-[10px] px-3 py-1.5 sm:px-2.5 sm:py-1 rounded-full border transition-all cursor-pointer ${
                               formData.relationship === preset
                                 ? "bg-primary/20 border-primary text-primary font-semibold"
                                 : "bg-muted/40 border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -356,7 +392,7 @@ export default function SubmitReferenceClient() {
                           placeholder="e.g. Khalfan engineered our national digital portal with remarkable reliability. His mastery of both network infrastructure and decoupled web applications delivered a system that effortlessly handled high concurrent loads..."
                           value={formData.quote}
                           onChange={(e) => handleChange("quote", e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background/60 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-y leading-relaxed"
+                          className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-y leading-relaxed min-h-[120px]"
                         />
                       </div>
                     </div>
@@ -384,7 +420,7 @@ export default function SubmitReferenceClient() {
                             placeholder="referee@company.org"
                             value={formData.email}
                             onChange={(e) => handleChange("email", e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background/60 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                            className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
                           />
                         </div>
 
@@ -397,7 +433,7 @@ export default function SubmitReferenceClient() {
                             placeholder="+254 7..."
                             value={formData.phone}
                             onChange={(e) => handleChange("phone", e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background/60 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                            className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
                           />
                         </div>
                       </div>
@@ -411,7 +447,7 @@ export default function SubmitReferenceClient() {
                           placeholder="https://linkedin.com/in/..."
                           value={formData.linkedin}
                           onChange={(e) => handleChange("linkedin", e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background/60 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                          className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
                         />
                       </div>
                     </div>
@@ -428,7 +464,7 @@ export default function SubmitReferenceClient() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-700 text-white font-bold text-sm shadow-xl shadow-primary/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      className="w-full py-4 sm:py-3.5 px-6 rounded-2xl bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-700 text-white font-bold text-sm shadow-xl shadow-primary/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[48px]"
                     >
                       {submitting ? (
                         <>
@@ -446,7 +482,11 @@ export default function SubmitReferenceClient() {
                 </div>
 
                 {/* ── Right: Live Preview Card ── */}
-                <div className="lg:col-span-5 sticky top-28 space-y-4">
+                <div
+                  className={`lg:col-span-5 lg:sticky lg:top-28 space-y-4 ${
+                    mobileTab === "form" ? "hidden lg:block" : "block"
+                  }`}
+                >
                   <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/60 border border-border/60 text-xs font-mono text-muted-foreground w-fit">
                     <Eye className="w-3.5 h-3.5 text-primary" />
                     <span>Live Portfolio Card Preview</span>
@@ -457,12 +497,12 @@ export default function SubmitReferenceClient() {
                   </p>
 
                   {/* Rendered Reference Card */}
-                  <div className="group relative flex flex-col rounded-2xl border border-border/80 bg-card/90 backdrop-blur-md p-6 shadow-xl transition-all">
+                  <div className="group relative flex flex-col rounded-2xl border border-border/80 bg-card/90 backdrop-blur-md p-5 sm:p-6 shadow-xl transition-all">
                     {/* Decorative quote mark */}
                     <Quote className="absolute top-5 right-5 h-8 w-8 text-primary/10" />
 
                     {/* Quote */}
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-6 flex-1 italic min-h-[4rem]">
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-6 flex-1 italic min-h-[4rem] break-words">
                       &ldquo;
                       {formData.quote.trim() ||
                         "Your endorsement and recommendation quote will appear here as you write it..."}
@@ -473,17 +513,17 @@ export default function SubmitReferenceClient() {
                     <div className="h-px bg-gradient-to-r from-primary/25 via-border/40 to-transparent mb-5" />
 
                     {/* Referee info */}
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-3.5 sm:gap-4">
                       <div
-                        className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${AVATAR_COLORS[0]} flex items-center justify-center text-white text-lg font-extrabold shadow-lg shrink-0`}
+                        className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${AVATAR_COLORS[0]} flex items-center justify-center text-white text-base sm:text-lg font-extrabold shadow-lg shrink-0`}
                       >
                         {getInitials(formData.name)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-foreground text-base leading-tight truncate">
+                        <p className="font-bold text-foreground text-sm sm:text-base leading-tight truncate break-words">
                           {formData.name.trim() || "Your Name"}
                         </p>
-                        <p className="text-sm text-primary font-medium mt-0.5 truncate">
+                        <p className="text-xs sm:text-sm text-primary font-medium mt-0.5 truncate">
                           {formData.title.trim() || "Job Title"}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
@@ -499,27 +539,52 @@ export default function SubmitReferenceClient() {
 
                     {/* Contact links preview */}
                     {(formData.email || formData.phone || formData.linkedin) && (
-                      <div className="flex flex-wrap gap-3 mt-5 pt-4 border-t border-border/40">
+                      <div className="flex flex-wrap gap-2.5 sm:gap-3 mt-5 pt-4 border-t border-border/40">
                         {formData.email && (
-                          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Mail className="h-3.5 w-3.5" />
+                          <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground break-all">
+                            <Mail className="h-3.5 w-3.5 shrink-0" />
                             {formData.email}
                           </span>
                         )}
                         {formData.phone && (
-                          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Phone className="h-3.5 w-3.5" />
+                          <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground">
+                            <Phone className="h-3.5 w-3.5 shrink-0" />
                             {formData.phone}
                           </span>
                         )}
                         {formData.linkedin && (
-                          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Linkedin className="h-3.5 w-3.5" />
+                          <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground">
+                            <Linkedin className="h-3.5 w-3.5 shrink-0" />
                             LinkedIn
                           </span>
                         )}
                       </div>
                     )}
+                  </div>
+
+                  {/* Mobile Quick Action Pills in Preview Mode */}
+                  <div className="lg:hidden flex items-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setMobileTab("form")}
+                      className="flex-1 py-3 px-4 rounded-xl border border-border/80 bg-card hover:bg-muted text-foreground text-xs font-semibold transition-all flex items-center justify-center gap-2"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Back to Edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      disabled={submitting}
+                      className="flex-1 py-3 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {submitting ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Send className="w-3.5 h-3.5" />
+                      )}
+                      <span>Submit Now</span>
+                    </button>
                   </div>
                 </div>
               </div>

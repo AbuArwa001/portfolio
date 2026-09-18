@@ -105,10 +105,10 @@ function ReferenceCard({ ref: r, idx }: { ref: Reference; idx: number }) {
           {r.email && (
             <a
               href={`mailto:${r.email}`}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors max-w-full"
             >
-              <Mail className="h-3.5 w-3.5" />
-              {r.email}
+              <Mail className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{r.email}</span>
             </a>
           )}
           {r.phone && (
@@ -116,8 +116,8 @@ function ReferenceCard({ ref: r, idx }: { ref: Reference; idx: number }) {
               href={`tel:${r.phone}`}
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
             >
-              <Phone className="h-3.5 w-3.5" />
-              {r.phone}
+              <Phone className="h-3.5 w-3.5 shrink-0" />
+              <span>{r.phone}</span>
             </a>
           )}
           {r.linkedin && (
@@ -127,9 +127,9 @@ function ReferenceCard({ ref: r, idx }: { ref: Reference; idx: number }) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
             >
-              <Linkedin className="h-3.5 w-3.5" />
-              LinkedIn
-              <ArrowUpRight className="h-3 w-3" />
+              <Linkedin className="h-3.5 w-3.5 shrink-0" />
+              <span>LinkedIn</span>
+              <ArrowUpRight className="h-3 w-3 shrink-0" />
             </a>
           )}
         </div>
@@ -162,42 +162,42 @@ export default function ReferencesClient({ references: initialRefs }: Props) {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-background selection:bg-primary/30">
+    <div className="relative min-h-screen bg-background selection:bg-primary/30 overflow-x-hidden">
       {/* Ambient glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] opacity-15 pointer-events-none -z-10">
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[900px] h-[400px] opacity-15 pointer-events-none -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/50 via-primary/30 to-indigo-500/20 blur-[120px] rounded-full" />
       </div>
 
-      <div className="container px-4 mx-auto pt-32 pb-24">
+      <div className="container px-4 sm:px-6 lg:px-8 mx-auto pt-24 sm:pt-32 pb-16 sm:pb-24">
 
         {/* ── Header ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16"
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 sm:mb-16"
         >
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-sm font-medium text-primary bg-primary/10 rounded-full border border-primary/20">
-              <Users className="w-4 h-4" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 mb-4 sm:mb-6 text-xs sm:text-sm font-medium text-primary bg-primary/10 rounded-full border border-primary/20">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span>Professional References</span>
             </div>
-            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-foreground mb-5">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground mb-4 sm:mb-5">
               What{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-400">
                 People Say
               </span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed">
               A curated list of professional referees who can speak to my expertise,
               work ethic, and impact across network engineering and IT leadership roles.
             </p>
           </div>
 
-          <div className="shrink-0">
+          <div className="shrink-0 w-full sm:w-auto">
             <Link
               href="/references/submit"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 text-xs font-semibold shadow-sm transition-all hover:scale-[1.02]"
+              className="inline-flex items-center justify-center w-full sm:w-auto gap-2 px-5 py-3 rounded-2xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 text-xs font-semibold shadow-sm transition-all hover:scale-[1.02]"
             >
               <Sparkles className="w-4 h-4" />
               <span>Submit an Endorsement</span>
