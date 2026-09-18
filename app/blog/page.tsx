@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Calendar, Clock, ArrowRight, Rss, WifiOff } from "lucide-react";
+import { getApiUrl } from "@/lib/config";
 
 type BlogPost = {
   id: number;
@@ -33,7 +34,7 @@ const FALLBACK_POSTS: BlogPost[] = [
 
 async function getPosts(): Promise<BlogPost[]> {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+    const apiUrl = getApiUrl();
     const res = await fetch(`${apiUrl}/api/v1/blog/`, {
       cache: "no-store",
       signal: AbortSignal.timeout(3000),

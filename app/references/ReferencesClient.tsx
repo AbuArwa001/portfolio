@@ -6,10 +6,11 @@ import {
   Quote, Briefcase, Mail, Phone, Linkedin, Users, ArrowUpRight,
   Building2, UserCheck,
 } from "lucide-react";
+import { getApiUrl } from "@/lib/config";
 
-const API = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/references/`;
+const API = `${getApiUrl()}/api/v1/references/`;
 
-interface Reference {
+export interface Reference {
   id?: number;
   name: string;
   title: string;
@@ -148,7 +149,10 @@ export default function ReferencesClient({ references: initialRefs }: Props) {
   // Fetch fresh from the API (overrides server-passed data if available)
   useEffect(() => {
     fetch(API)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) setRefs(data);
       })

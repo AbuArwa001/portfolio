@@ -12,12 +12,14 @@ import {
   Language,
   Certification,
 } from "../types";
+import { getApiUrl } from "./config";
+import type { Reference } from "../app/references/ReferencesClient";
 
 export const publicFetch = async <T>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+  const baseUrl = getApiUrl();
   const endpoint = url.startsWith("/api") ? url : `/api/v1${url.startsWith("/") ? url : `/${url}`}`;
   
   const response = await fetch(`${baseUrl}${endpoint}`, {
@@ -69,6 +71,9 @@ export const api = {
   blog: {
     get: (): Promise<BlogPost[]> => publicFetch("/blog/"),
     getBySlug: (slug: string): Promise<BlogPost> => publicFetch(`/blog/?slug=${slug}`),
+  },
+  references: {
+    get: (): Promise<Reference[]> => publicFetch("/references/"),
   },
   contact: {
     create: (data: { name: string; email: string; message: string }) =>

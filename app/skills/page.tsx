@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getApiUrl } from "@/lib/config";
 import {
   Code2,
   Server,
@@ -146,7 +147,7 @@ export default function SkillsPage() {
   useEffect(() => {
     const fetchSkills = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+        const apiUrl = getApiUrl();
         const res = await fetch(`${apiUrl}/api/v1/auth/profile/skill-categories/`);
         if (res.ok) {
           const data = await res.json();

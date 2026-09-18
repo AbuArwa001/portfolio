@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { api } from "@/lib/api";
+import { getApiUrl } from "@/lib/config";
 import { UserProfile, Certification, SkillCategory, Language } from "@/types";
 import { motion, easeInOut } from "framer-motion";
 import {
@@ -86,8 +87,7 @@ export default function ProfilePage() {
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
-  const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const API_BASE_URL = getApiUrl();
 
   useEffect(() => {
     const fetchData = async () => {
