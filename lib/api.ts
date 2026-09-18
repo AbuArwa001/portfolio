@@ -74,6 +74,11 @@ export const api = {
   },
   references: {
     get: (): Promise<Reference[]> => publicFetch("/references/"),
+    submit: (data: Omit<Reference, "id" | "is_approved" | "created_at">) =>
+      publicFetch<{ message: string; data: Reference }>("/references/submit/", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   },
   contact: {
     create: (data: { name: string; email: string; message: string }) =>

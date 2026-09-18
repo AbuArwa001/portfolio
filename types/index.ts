@@ -130,3 +130,18 @@ export interface ContactMessage {
   message: string;
   created_at?: string;
 }
+
+export interface Reference {
+  id?: number;
+  name: string;
+  title: string;
+  company: string;
+  relationship: string;
+  quote: string;
+  email?: string;
+  phone?: string;
+  linkedin?: string;
+  is_approved?: boolean;
+  created_at?: string;
+}
+

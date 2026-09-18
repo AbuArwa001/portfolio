@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Quote, Briefcase, Mail, Phone, Linkedin, Users, ArrowUpRight,
-  Building2, UserCheck,
+  Building2, UserCheck, Plus, Sparkles,
 } from "lucide-react";
 import { getApiUrl } from "@/lib/config";
 
@@ -174,22 +175,34 @@ export default function ReferencesClient({ references: initialRefs }: Props) {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-16"
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-sm font-medium text-primary bg-primary/10 rounded-full border border-primary/20">
-            <Users className="w-4 h-4" />
-            <span>Professional References</span>
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-sm font-medium text-primary bg-primary/10 rounded-full border border-primary/20">
+              <Users className="w-4 h-4" />
+              <span>Professional References</span>
+            </div>
+            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-foreground mb-5">
+              What{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-400">
+                People Say
+              </span>
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
+              A curated list of professional referees who can speak to my expertise,
+              work ethic, and impact across network engineering and IT leadership roles.
+            </p>
           </div>
-          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-foreground mb-5">
-            What{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-400">
-              People Say
-            </span>
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
-            A curated list of professional referees who can speak to my expertise,
-            work ethic, and impact across network engineering and IT leadership roles.
-          </p>
+
+          <div className="shrink-0">
+            <Link
+              href="/references/submit"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 text-xs font-semibold shadow-sm transition-all hover:scale-[1.02]"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Submit an Endorsement</span>
+            </Link>
+          </div>
         </motion.div>
 
         {/* ── Loading ── */}
@@ -236,16 +249,25 @@ export default function ReferencesClient({ references: initialRefs }: Props) {
             </div>
 
             {/* Footer note */}
-            <motion.p
+            <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
-              className="text-center text-sm text-muted-foreground/60 flex items-center justify-center gap-1.5"
+              className="text-center flex flex-col sm:flex-row items-center justify-center gap-3 text-sm text-muted-foreground/70 pt-6 border-t border-border/40"
             >
-              <UserCheck className="h-4 w-4" />
-              Additional references available upon request.
-            </motion.p>
+              <span className="flex items-center gap-1.5 text-xs">
+                <UserCheck className="h-4 w-4 text-primary" />
+                Additional verified references available upon request.
+              </span>
+              <span className="hidden sm:inline text-muted-foreground/30">•</span>
+              <Link
+                href="/references/submit"
+                className="inline-flex items-center gap-1.5 text-xs text-primary font-semibold hover:underline"
+              >
+                Worked with Khalfan? Leave an endorsement &rarr;
+              </Link>
+            </motion.div>
           </>
         )}
       </div>
