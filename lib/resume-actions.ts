@@ -4,6 +4,8 @@ import { promises as fs } from "fs";
 import path from "path";
 import { revalidatePath } from "next/cache";
 
+import { getApiUrl } from "./config";
+
 const DATA_PATH = path.join(process.cwd(), "app/resume/resume.json");
 
 export type Reference = {
@@ -50,10 +52,33 @@ export type ResumeData = {
 };
 
 export async function getResumeData(): Promise<ResumeData> {
-  const raw = await fs.readFile(DATA_PATH, "utf-8");
-  const parsed = JSON.parse(raw);
-  if (!Array.isArray(parsed.references)) parsed.references = [];
-  return parsed as ResumeData;
+  // First attempt to fetch live from PostgreSQL DRF backend
+  try {
+    const apiUrl = getApiUrl();
+    const res = await fetch(`${apiUrl}/api/v1/resume/primary/`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(4000),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && (data.profile || data.experience)) {
+        if (!Array.isArray(data.references)) data.references = [];
+        return data as ResumeData;
+      }
+    }
+  } catch (err) {
+    // Silently proceed to local fallback
+  }
+
+  // Fallback to local file
+  try {
+    const raw = await fs.readFile(DATA_PATH, "utf-8");
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed.references)) parsed.references = [];
+    return parsed as ResumeData;
+  } catch {
+    return {} as ResumeData;
+  }
 }
 
 export async function saveResumeData(data: ResumeData): Promise<{ ok: boolean; error?: string }> {
