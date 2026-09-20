@@ -130,7 +130,8 @@ export default function SubmissionProgressModal({
                     {stage === "finalizing" && (
                       <HeartHandshake className="w-6 h-6 text-white animate-pulse" />
                     )}
-                  </>
+                  </div>
+                </>
               )}
             </div>
 
@@ -248,7 +249,7 @@ export default function SubmissionProgressModal({
               })}
             </div>
           ) : (
-            /* ── Error Box ── */}
+            /* ── Error Box ── */
             <div className="mt-6 space-y-4">
               <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-400 space-y-2">
                 <div className="flex items-center gap-2 font-bold text-red-300">

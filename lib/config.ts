@@ -14,7 +14,16 @@ export function getApiUrl(): string {
   if (!url.startsWith("http://") && !url.startsWith("https://")) {
     url = `https://${url}`;
   }
-  return url.replace(/\/+$/, "");
+
+  // Strip trailing slashes and redundant /api path if provided by environment
+  url = url.replace(/\/+$/, "").replace(/\/api\/?$/, "");
+
+  // Protect against deprecated or incorrect domain aliases
+  if (url.includes("khalfanathman.site")) {
+    url = url.replace(/https?:\/\/([^/]*\.)?khalfanathman\.site/, "https://api.khalfanathman.dev");
+  }
+
+  return url;
 }
 
 export const API_BASE_URL = getApiUrl();

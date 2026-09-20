@@ -23,6 +23,7 @@ import {
   HeartHandshake,
 } from "lucide-react";
 import { getApiUrl } from "@/lib/config";
+import SubmissionProgressModal, { ProgressStage } from "./SubmissionProgressModal";
 
 const RELATIONSHIP_PRESETS = [
   "Direct Supervisor",
@@ -70,6 +71,11 @@ export default function SubmitReferenceClient() {
   const [error, setError] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<"form" | "preview">("form");
 
+  // Progress Modal State
+  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [progressStage, setProgressStage] = useState<ProgressStage>("validating");
+  const [progressPercent, setProgressPercent] = useState(0);
+
   // Pre-fill from query params if Khalfan provided them in the invite link
   useEffect(() => {
     const qName = searchParams.get("name") || searchParams.get("referee") || "";
@@ -115,6 +121,15 @@ export default function SubmitReferenceClient() {
     if (error) setError(null);
   };
 
+  const handleDismissModalError = () => {
+    setShowProgressModal(false);
+    notifyError(error || "Submission failed.");
+  };
+
+  const handleRetrySubmit = () => {
+    handleSubmit();
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e && typeof e.preventDefault === "function") {
       e.preventDefault();
@@ -145,10 +160,20 @@ export default function SubmitReferenceClient() {
       linkedin: normalizeUrl(formData.linkedin),
     };
 
+    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    setShowProgressModal(true);
+    setProgressStage("validating");
+    setProgressPercent(20);
     setSubmitting(true);
     setError(null);
 
     try {
+      await sleep(350);
+
+      setProgressStage("transmitting");
+      setProgressPercent(60);
+
       const primaryUrl = getApiUrl();
       const primaryEndpoint = `${primaryUrl}/api/v1/references/submit/`;
       const fallbackEndpoint = "https://api.khalfanathman.dev/api/v1/references/submit/";
@@ -195,12 +220,24 @@ export default function SubmitReferenceClient() {
         throw new Error(errMsg);
       }
 
+      // Step 3: Finalizing
+      setProgressStage("finalizing");
+      setProgressPercent(90);
+      await sleep(400);
+
+      // Step 4: Success confirmation
+      setProgressStage("success");
+      setProgressPercent(100);
+      await sleep(750);
+
+      setShowProgressModal(false);
       setSubmitted(true);
     } catch (err: any) {
-      notifyError(
+      const msg =
         err?.message ||
-          "Failed to submit your reference. Please check your network and try again."
-      );
+        "Failed to submit your reference. Please check your network and try again.";
+      setError(msg);
+      setProgressStage("error");
     } finally {
       setSubmitting(false);
     }
@@ -677,6 +714,17 @@ export default function SubmitReferenceClient() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* ── Submission Progress Modal ── */}
+      <SubmissionProgressModal
+        isOpen={showProgressModal}
+        stage={progressStage}
+        progress={progressPercent}
+        errorMessage={error}
+        refereeName={formData.name.trim()}
+        onDismissError={handleDismissModalError}
+        onRetry={handleRetrySubmit}
+      />
     </div>
   );
 }

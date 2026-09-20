@@ -19,10 +19,14 @@ export const publicFetch = async <T>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> => {
-  const baseUrl = getApiUrl();
-  const endpoint = url.startsWith("/api") ? url : `/api/v1${url.startsWith("/") ? url : `/${url}`}`;
+  const baseUrl = getApiUrl().replace(/\/api\/?$/, "");
+  const cleanUrl = url.startsWith("/api/v1")
+    ? url
+    : url.startsWith("/api")
+    ? url.replace(/^\/api/, "/api/v1")
+    : `/api/v1${url.startsWith("/") ? url : `/${url}`}`;
   
-  const response = await fetch(`${baseUrl}${endpoint}`, {
+  const response = await fetch(`${baseUrl}${cleanUrl}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
