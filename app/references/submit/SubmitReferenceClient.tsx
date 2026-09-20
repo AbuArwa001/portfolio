@@ -86,6 +86,27 @@ export default function SubmitReferenceClient() {
     }));
   }, [searchParams]);
 
+  // Normalize LinkedIn / website URLs (auto-prefixes https:// if missing)
+  const normalizeUrl = (raw: string): string => {
+    const trimmed = raw.trim();
+    if (!trimmed) return "";
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return trimmed;
+    }
+    return `https://${trimmed}`;
+  };
+
+  const notifyError = (msg: string) => {
+    setError(msg);
+    setMobileTab("form");
+    if (typeof window !== "undefined") {
+      const el = document.getElementById("endorsement-form-card");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  };
+
   const handleChange = (
     field: keyof typeof formData,
     value: string
@@ -94,38 +115,92 @@ export default function SubmitReferenceClient() {
     if (error) setError(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim()) return setError("Please provide your full name.");
-    if (!formData.title.trim()) return setError("Please provide your job title.");
-    if (!formData.company.trim()) return setError("Please provide your organization / company.");
-    if (!formData.relationship.trim()) return setError("Please specify your professional relationship to Khalfan.");
-    if (!formData.quote.trim()) return setError("Please write a brief endorsement or quote.");
-    if (!formData.email.trim()) return setError("Please provide your work or professional email.");
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e && typeof e.preventDefault === "function") {
+      e.preventDefault();
+    }
+
+    if (!formData.name.trim()) return notifyError("Please provide your full name.");
+    if (!formData.title.trim()) return notifyError("Please provide your job title.");
+    if (!formData.company.trim()) return notifyError("Please provide your organization / company.");
+    if (!formData.relationship.trim()) return notifyError("Please specify your professional relationship to Khalfan.");
+    if (!formData.quote.trim()) return notifyError("Please write a brief endorsement or quote.");
+    if (!formData.email.trim()) return notifyError("Please provide your work or professional email.");
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      return notifyError("Please enter a valid email address (e.g. referee@company.org).");
+    }
+
+    const payload = {
+      ...formData,
+      name: formData.name.trim(),
+      title: formData.title.trim(),
+      company: formData.company.trim(),
+      relationship: formData.relationship.trim(),
+      quote: formData.quote.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      linkedin: normalizeUrl(formData.linkedin),
+    };
 
     setSubmitting(true);
     setError(null);
 
     try {
-      const endpoint = `${getApiUrl()}/api/v1/references/submit/`;
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const primaryUrl = getApiUrl();
+      const primaryEndpoint = `${primaryUrl}/api/v1/references/submit/`;
+      const fallbackEndpoint = "https://api.khalfanathman.dev/api/v1/references/submit/";
+
+      let res: Response;
+      try {
+        res = await fetch(primaryEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } catch (primaryErr) {
+        // If local dev server is offline and we aren't already targeting production, fallback to production backend
+        if (primaryUrl !== "https://api.khalfanathman.dev") {
+          res = await fetch(fallbackEndpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+        } else {
+          throw primaryErr;
+        }
+      }
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => null);
-        const errMsg =
-          errJson?.detail ||
-          errJson?.message ||
-          (errJson ? Object.values(errJson).flat().join(" ") : `Server returned HTTP ${res.status}`);
+        let errMsg = "Submission failed. Please verify your information.";
+        if (errJson) {
+          if (errJson.detail) errMsg = errJson.detail;
+          else if (errJson.message) errMsg = errJson.message;
+          else {
+            errMsg = Object.entries(errJson)
+              .map(
+                ([k, v]) =>
+                  `${k.charAt(0).toUpperCase() + k.slice(1)}: ${
+                    Array.isArray(v) ? v.join(", ") : v
+                  }`
+              )
+              .join(" • ");
+          }
+        } else {
+          errMsg = `Server returned HTTP ${res.status}`;
+        }
         throw new Error(errMsg);
       }
 
       setSubmitted(true);
     } catch (err: any) {
-      setError(err?.message || "Failed to submit your reference. Please try again.");
+      notifyError(
+        err?.message ||
+          "Failed to submit your reference. Please check your network and try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -255,11 +330,12 @@ export default function SubmitReferenceClient() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
                 {/* ── Left: The Form ── */}
                 <div
+                  id="endorsement-form-card"
                   className={`lg:col-span-7 rounded-3xl border border-border/60 bg-card/70 backdrop-blur-xl p-5 sm:p-8 shadow-xl ${
                     mobileTab === "preview" ? "hidden lg:block" : "block"
                   }`}
                 >
-                  <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+                  <form onSubmit={handleSubmit} noValidate className="space-y-5 sm:space-y-6">
                     {/* Error Banner */}
                     {error && (
                       <div className="flex items-start gap-3 p-3.5 sm:p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-xs leading-relaxed">
@@ -443,8 +519,9 @@ export default function SubmitReferenceClient() {
                           LinkedIn Profile URL <span className="text-muted-foreground text-[10px]">(optional)</span>
                         </label>
                         <input
-                          type="url"
-                          placeholder="https://linkedin.com/in/..."
+                          type="text"
+                          inputMode="url"
+                          placeholder="e.g. linkedin.com/in/username or https://..."
                           value={formData.linkedin}
                           onChange={(e) => handleChange("linkedin", e.target.value)}
                           className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
@@ -459,6 +536,14 @@ export default function SubmitReferenceClient() {
                         By submitting, you consent to having your name, title, company, and quote showcased on Khalfan Athman&apos;s professional portfolio. Your endorsement is held for administrative review before going live.
                       </span>
                     </div>
+
+                    {/* Bottom Error Banner */}
+                    {error && (
+                      <div className="flex items-start gap-3 p-3.5 sm:p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-xs leading-relaxed animate-shake">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <span>{error}</span>
+                      </div>
+                    )}
 
                     {/* Submit Button */}
                     <button
@@ -574,7 +659,7 @@ export default function SubmitReferenceClient() {
                     </button>
                     <button
                       type="button"
-                      onClick={handleSubmit}
+                      onClick={() => handleSubmit()}
                       disabled={submitting}
                       className="flex-1 py-3 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
                     >
