@@ -186,7 +186,14 @@ export default function SubmitReferenceClient() {
           body: JSON.stringify(payload),
         });
       } catch (primaryErr) {
-        // If local dev server is offline and we aren't already targeting production, fallback to production backend
+        const isLocal = primaryUrl.includes("localhost") || primaryUrl.includes("127.0.0.1");
+        if (isLocal) {
+          throw new Error(
+            `Failed to reach local backend at ${primaryUrl}. Please ensure your Django server is running.`
+          );
+        }
+
+        // If production server primary domain fails, try fallback endpoint
         if (primaryUrl !== "https://api.khalfanathman.dev") {
           res = await fetch(fallbackEndpoint, {
             method: "POST",

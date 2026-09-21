@@ -18,6 +18,11 @@ export function getApiUrl(): string {
   // Strip trailing slashes and redundant /api path if provided by environment
   url = url.replace(/\/+$/, "").replace(/\/api\/?$/, "");
 
+  // Protect against IPv6 localhost connection refusal on Linux
+  if (url.includes("localhost:8000")) {
+    url = url.replace("localhost:8000", "127.0.0.1:8000");
+  }
+
   // Protect against deprecated or incorrect domain aliases
   if (url.includes("khalfanathman.site")) {
     url = url.replace(/https?:\/\/([^/]*\.)?khalfanathman\.site/, "https://api.khalfanathman.dev");
