@@ -383,7 +383,15 @@ function FeaturedCard({ project, index }: { project: Project; index: number }) {
               className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border border-border/60 hover:border-border px-4 py-2 rounded-xl"
             >
               <Github className="h-4 w-4" />
-              <span>{project.category.includes("Network") ? "Lab Topology / Configs" : "Source Code"}</span>
+              <span>
+                {project.category.includes("Network")
+                  ? "Lab Topology / Configs"
+                  : project.category.includes("AWS")
+                  ? "Terraform IaC"
+                  : project.category.includes("Mobile")
+                  ? "Flutter Codebase"
+                  : "Source Code"}
+              </span>
             </a>
           )}
           {project.live && (
@@ -394,7 +402,15 @@ function FeaturedCard({ project, index }: { project: Project; index: number }) {
               className="inline-flex items-center gap-2 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors px-4 py-2 rounded-xl"
             >
               <Globe className="h-4 w-4" />
-              <span>{project.category.includes("Network") ? "View Topology Diagram" : "View Live Portal"}</span>
+              <span>
+                {project.category.includes("Network")
+                  ? "View Topology Diagram"
+                  : project.category.includes("AWS")
+                  ? "Cloud Architecture Blueprint"
+                  : project.category.includes("Mobile")
+                  ? "APK / App Demo"
+                  : "View Live Portal"}
+              </span>
               <ArrowUpRight className="h-4 w-4" />
             </a>
           )}
@@ -481,7 +497,15 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               aria-label="Code or Lab Repository"
             >
               <Github className="h-3.5 w-3.5" />
-              <span>{project.category.includes("Network") ? "Lab Files" : "Code"}</span>
+              <span>
+                {project.category.includes("Network")
+                  ? "Lab Files"
+                  : project.category.includes("AWS")
+                  ? "Terraform"
+                  : project.category.includes("Mobile")
+                  ? "Mobile Repo"
+                  : "Code"}
+              </span>
             </a>
           )}
           {project.live && (
@@ -493,7 +517,15 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               aria-label="Live Demo or Architecture Topology"
             >
               <ExternalLink className="h-3.5 w-3.5" />
-              <span>{project.category.includes("Network") ? "Topology" : "Live Demo"}</span>
+              <span>
+                {project.category.includes("Network")
+                  ? "Topology"
+                  : project.category.includes("AWS")
+                  ? "Architecture"
+                  : project.category.includes("Mobile")
+                  ? "APK / Demo"
+                  : "Live Demo"}
+              </span>
             </a>
           )}
           <div className="flex-1" />
@@ -558,34 +590,67 @@ export default function ProjectsPage() {
         const mapped: Project[] = backendProjects.map((p) => {
           let category: Category = "Full-Stack";
           const lower = (p.type || "").toLowerCase();
-          if (lower.includes("network")) category = "Network Engineering";
-          else if (lower.includes("aws") || lower.includes("cloud")) category = "AWS Solutions Architect";
-          else if (lower.includes("mobile") || lower.includes("android") || lower.includes("flutter")) category = "Mobile (Flutter / Android)";
-          else if (lower.includes("systems") || lower.includes("alx")) category = "ALX / Systems";
+          if (
+            lower.includes("network") ||
+            lower.includes("packet tracer") ||
+            lower.includes("eve-ng") ||
+            lower.includes("gns3") ||
+            lower.includes("cisco")
+          ) {
+            category = "Network Engineering";
+          } else if (
+            lower.includes("aws") ||
+            lower.includes("cloud") ||
+            lower.includes("solution architect")
+          ) {
+            category = "AWS Solutions Architect";
+          } else if (
+            lower.includes("mobile") ||
+            lower.includes("android") ||
+            lower.includes("flutter")
+          ) {
+            category = "Mobile (Flutter / Android)";
+          } else if (
+            lower.includes("systems") ||
+            lower.includes("alx")
+          ) {
+            category = "ALX / Systems";
+          }
 
           let status: Status = "Live";
           if (p.status === "In Progress") status = "In Progress";
           else if (p.status === "Completed") status = "Completed";
 
+          const prevMatch = PROJECTS.find((pr) => {
+            const prLower = pr.title.toLowerCase();
+            const pLower = (p.name || "").toLowerCase();
+            return prLower === pLower || pLower.includes(prLower) || prLower.includes(pLower);
+          });
+
           return {
             id: p.id,
             title: p.name,
-            subtitle: p.type || "Engineering Project",
-            description: p.description,
+            subtitle: p.type || prevMatch?.subtitle || "Engineering Project",
+            description: p.description || prevMatch?.description || "",
             status,
             category,
-            tech: p.technologies ? p.technologies.split(",").map((t) => t.trim()).filter(Boolean) : [],
-            live: p.link || undefined,
-            github: p.github_link || undefined,
-            image: p.image || undefined,
-            year: p.created_at ? new Date(p.created_at).getFullYear().toString() : "2025",
-            featured: false,
+            tech: p.technologies
+              ? p.technologies.split(",").map((t) => t.trim()).filter(Boolean)
+              : (prevMatch?.tech || []),
+            live: p.link || prevMatch?.live || undefined,
+            github: p.github_link || prevMatch?.github || undefined,
+            image: p.image || prevMatch?.image || undefined,
+            year: p.created_at ? new Date(p.created_at).getFullYear().toString() : (prevMatch?.year || "2025"),
+            featured: prevMatch ? Boolean(prevMatch.featured) : false,
           };
         });
 
         setProjectList((prev) => {
-          const names = new Set(mapped.map((m) => m.title.toLowerCase()));
-          const unrepresented = prev.filter((p) => !names.has(p.title.toLowerCase()));
+          const mappedNames = mapped.map((m) => m.title.toLowerCase());
+          const unrepresented = prev.filter((p) => {
+            const pTitle = p.title.toLowerCase();
+            return !mappedNames.some((m) => m === pTitle || m.includes(pTitle) || pTitle.includes(m));
+          });
           return [...mapped, ...unrepresented];
         });
       })
