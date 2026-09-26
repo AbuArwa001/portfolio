@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,11 +19,22 @@ import {
   Network,
   Terminal,
   Layers,
+  Cloud,
+  Smartphone,
+  Cpu,
+  FileCode,
 } from "lucide-react";
+import { api } from "@/lib/api";
 
 // ─── Project Data ──────────────────────────────────────────────────────────────
 type Status = "Live" | "In Progress" | "Completed";
-type Category = "Full-Stack" | "Networking" | "ALX / Systems" | "Mobile";
+type Category =
+  | "All"
+  | "Network Engineering"
+  | "AWS Solutions Architect"
+  | "Mobile (Flutter / Android)"
+  | "Full-Stack"
+  | "ALX / Systems";
 
 interface Project {
   id: number;
@@ -57,6 +68,34 @@ const PROJECTS: Project[] = [
     year: "2025–2026",
   },
   {
+    id: 11,
+    title: "Enterprise Multi-Branch WAN & Core Topology",
+    subtitle: "Cisco Packet Tracer & EVE-NG Network Simulation",
+    description:
+      "Complete enterprise network architecture connecting HQ and two remote regional offices. Implements dual-homed eBGP to simulated Tier-1 ISPs, internal multi-area OSPF routing with route redistribution, 802.1Q VLAN trunking with Inter-VLAN routing, and HSRP default gateway redundancy. End-to-end packet flows, security ACLs, and failover convergence were rigorously validated with Wireshark packet capture.",
+    status: "Completed",
+    category: "Network Engineering",
+    tech: ["Cisco Packet Tracer", "EVE-NG", "GNS3", "Wireshark", "Cisco IOS", "BGP", "OSPF", "VLANs", "HSRP"],
+    github: "https://github.com/AbuArwa001",
+    live: "https://github.com/AbuArwa001",
+    featured: true,
+    year: "2024–2025",
+  },
+  {
+    id: 13,
+    title: "AWS Multi-Tier High-Availability Cloud Infrastructure",
+    subtitle: "Well-Architected Cloud Architecture via Terraform IaC",
+    description:
+      "Production-ready, fault-tolerant 3-tier cloud architecture provisioned across multiple AWS Availability Zones. Features custom VPC with public and isolated private subnets, Application Load Balancers with automated health checks, Auto-Scaling EC2 instances, Amazon RDS Multi-AZ PostgreSQL cluster, S3 static assets with CloudFront CDN distribution, Route 53 DNS routing, and full automated provisioning using Terraform.",
+    status: "Completed",
+    category: "AWS Solutions Architect",
+    tech: ["AWS", "AWS VPC", "Terraform", "EC2", "S3", "RDS Multi-AZ", "Route 53", "CloudFront", "IAM"],
+    github: "https://github.com/AbuArwa001",
+    live: "https://github.com/AbuArwa001",
+    featured: true,
+    year: "2025",
+  },
+  {
     id: 2,
     title: "Langata Islamic Center",
     subtitle: "Community Mosque & Digital Hub",
@@ -70,6 +109,33 @@ const PROJECTS: Project[] = [
     image: "/projects/langata-islamic-center.png",
     featured: true,
     year: "2025–2026",
+  },
+  {
+    id: 14,
+    title: "Mobile Portal & Real-Time Sync (Flutter & Android)",
+    subtitle: "Offline-First Android App with SQLite Caching & Firebase",
+    description:
+      "Modern cross-platform mobile application engineered for Android using Flutter and Dart. Features reactive state management with Riverpod, offline-first SQLite database synchronization, Firebase Cloud Messaging for real-time push notifications, and native Android biometric authentication with secure storage.",
+    status: "Live",
+    category: "Mobile (Flutter / Android)",
+    tech: ["Flutter", "Dart", "Android Studio", "Firebase", "SQLite", "Riverpod", "REST API"],
+    github: "https://github.com/AbuArwa001",
+    live: "https://github.com/AbuArwa001",
+    featured: false,
+    year: "2025",
+  },
+  {
+    id: 12,
+    title: "Datacenter Spine-Leaf & Perimeter Firewall Lab",
+    subtitle: "GNS3 Multi-Vendor Virtual Network & Security Emulation",
+    description:
+      "Datacenter spine-and-leaf network topology emulated in GNS3 combining Cisco routers, VyOS switches, and pfSense firewalls. Features redundant pfSense firewalls configured with CARP failover, DMZ network isolation for public servers, Site-to-Site IPsec VPN tunnels, and automated configuration backups with Python Netmiko scripts.",
+    status: "Completed",
+    category: "Network Engineering",
+    tech: ["GNS3", "pfSense", "Wireshark", "IPsec VPN", "Python", "BGP", "Linux"],
+    github: "https://github.com/AbuArwa001",
+    featured: false,
+    year: "2024",
   },
   {
     id: 3,
@@ -122,7 +188,7 @@ const PROJECTS: Project[] = [
     description:
       "Secure distributed voting API featuring a three-server architecture: two web servers behind a load balancer. Implements JWT authentication, database replication, rate limiting, and DDoS protection. Forked by the community.",
     status: "Completed",
-    category: "Networking",
+    category: "Network Engineering",
     tech: ["Python", "Flask", "HAProxy", "MySQL", "JWT", "Nginx", "AWS"],
     github: "https://github.com/AbuArwa001/kuranet",
     year: "2024",
@@ -178,12 +244,13 @@ const PROJECTS: Project[] = [
 ];
 
 // ─── Config ────────────────────────────────────────────────────────────────────
-const CATEGORIES: ("All" | Category)[] = [
+const CATEGORIES: Category[] = [
   "All",
+  "Network Engineering",
+  "AWS Solutions Architect",
+  "Mobile (Flutter / Android)",
   "Full-Stack",
-  "Networking",
   "ALX / Systems",
-  "Mobile",
 ];
 
 const STATUS_CONFIG: Record<Status, { label: string; color: string; dot: string }> = {
@@ -205,10 +272,12 @@ const STATUS_CONFIG: Record<Status, { label: string; color: string; dot: string 
 };
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  "Network Engineering": <Network className="h-4 w-4" />,
+  "Networking": <Network className="h-4 w-4" />,
+  "AWS Solutions Architect": <Cloud className="h-4 w-4" />,
+  "Mobile (Flutter / Android)": <Smartphone className="h-4 w-4" />,
   "Full-Stack": <Layers className="h-4 w-4" />,
-  Networking: <Network className="h-4 w-4" />,
   "ALX / Systems": <Terminal className="h-4 w-4" />,
-  Mobile: <Code2 className="h-4 w-4" />,
 };
 
 // ─── Animation Variants ────────────────────────────────────────────────────────
@@ -305,7 +374,7 @@ function FeaturedCard({ project, index }: { project: Project; index: number }) {
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {project.github && (
             <a
               href={project.github}
@@ -313,7 +382,8 @@ function FeaturedCard({ project, index }: { project: Project; index: number }) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border border-border/60 hover:border-border px-4 py-2 rounded-xl"
             >
-              <Github className="h-4 w-4" /> Code
+              <Github className="h-4 w-4" />
+              <span>{project.category.includes("Network") ? "Lab Topology / Configs" : "Source Code"}</span>
             </a>
           )}
           {project.live && (
@@ -323,7 +393,9 @@ function FeaturedCard({ project, index }: { project: Project; index: number }) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors px-4 py-2 rounded-xl"
             >
-              <Globe className="h-4 w-4" /> View Live <ArrowUpRight className="h-4 w-4" />
+              <Globe className="h-4 w-4" />
+              <span>{project.category.includes("Network") ? "View Topology Diagram" : "View Live Portal"}</span>
+              <ArrowUpRight className="h-4 w-4" />
             </a>
           )}
         </div>
@@ -357,10 +429,13 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           </div>
         </div>
       ) : (
-        <div className="relative h-44 bg-gradient-to-br from-primary/5 via-card to-blue-500/5 flex items-center justify-center">
-          <div className="text-primary/20 group-hover:text-primary/40 transition-colors">
-            {CATEGORY_ICONS[project.category] || <Code2 className="h-12 w-12" />}
+        <div className="relative h-44 bg-gradient-to-br from-primary/10 via-card to-blue-500/10 flex flex-col items-center justify-center border-b border-border/40 p-4">
+          <div className="text-primary/70 group-hover:scale-110 transition-transform duration-300 mb-2">
+            {CATEGORY_ICONS[project.category] || <Code2 className="h-10 w-10" />}
           </div>
+          <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary uppercase tracking-wider text-center">
+            {project.category}
+          </span>
           <div className="absolute top-3 right-3">
             <StatusBadge status={project.status} />
           </div>
@@ -402,10 +477,11 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               href={project.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
-              aria-label="GitHub"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors border border-border/40 hover:border-border"
+              aria-label="Code or Lab Repository"
             >
-              <Github className="h-4 w-4" />
+              <Github className="h-3.5 w-3.5" />
+              <span>{project.category.includes("Network") ? "Lab Files" : "Code"}</span>
             </a>
           )}
           {project.live && (
@@ -413,10 +489,11 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               href={project.live}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
-              aria-label="Live Site"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-primary hover:bg-primary/10 transition-colors border border-primary/20 hover:border-primary/40"
+              aria-label="Live Demo or Architecture Topology"
             >
-              <ExternalLink className="h-4 w-4" />
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span>{project.category.includes("Network") ? "Topology" : "Live Demo"}</span>
             </a>
           )}
           <div className="flex-1" />
@@ -428,13 +505,13 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 }
 
 // ─── Stats Bar ─────────────────────────────────────────────────────────────────
-function StatsBar() {
+function StatsBar({ projects }: { projects: Project[] }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
-  const total = PROJECTS.length;
-  const live = PROJECTS.filter((p) => p.status === "Live").length;
-  const inProgress = PROJECTS.filter((p) => p.status === "In Progress").length;
-  const completed = PROJECTS.filter((p) => p.status === "Completed").length;
+  const total = projects.length;
+  const live = projects.filter((p) => p.status === "Live").length;
+  const inProgress = projects.filter((p) => p.status === "In Progress").length;
+  const completed = projects.filter((p) => p.status === "Completed").length;
 
   const stats = [
     { label: "Total Projects", value: total, icon: <Layers className="h-5 w-5" />, color: "text-primary" },
@@ -469,10 +546,60 @@ function StatsBar() {
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 export default function ProjectsPage() {
-  const [activeCategory, setActiveCategory] = useState<"All" | Category>("All");
+  const [activeCategory, setActiveCategory] = useState<Category>("All");
+  const [projectList, setProjectList] = useState<Project[]>(PROJECTS);
 
-  const featured = PROJECTS.filter((p) => p.featured);
-  const rest = PROJECTS.filter((p) => !p.featured);
+  useEffect(() => {
+    let isMounted = true;
+    api.projects
+      .get()
+      .then((backendProjects) => {
+        if (!isMounted || !Array.isArray(backendProjects) || backendProjects.length === 0) return;
+        const mapped: Project[] = backendProjects.map((p) => {
+          let category: Category = "Full-Stack";
+          const lower = (p.type || "").toLowerCase();
+          if (lower.includes("network")) category = "Network Engineering";
+          else if (lower.includes("aws") || lower.includes("cloud")) category = "AWS Solutions Architect";
+          else if (lower.includes("mobile") || lower.includes("android") || lower.includes("flutter")) category = "Mobile (Flutter / Android)";
+          else if (lower.includes("systems") || lower.includes("alx")) category = "ALX / Systems";
+
+          let status: Status = "Live";
+          if (p.status === "In Progress") status = "In Progress";
+          else if (p.status === "Completed") status = "Completed";
+
+          return {
+            id: p.id,
+            title: p.name,
+            subtitle: p.type || "Engineering Project",
+            description: p.description,
+            status,
+            category,
+            tech: p.technologies ? p.technologies.split(",").map((t) => t.trim()).filter(Boolean) : [],
+            live: p.link || undefined,
+            github: p.github_link || undefined,
+            image: p.image || undefined,
+            year: p.created_at ? new Date(p.created_at).getFullYear().toString() : "2025",
+            featured: false,
+          };
+        });
+
+        setProjectList((prev) => {
+          const names = new Set(mapped.map((m) => m.title.toLowerCase()));
+          const unrepresented = prev.filter((p) => !names.has(p.title.toLowerCase()));
+          return [...mapped, ...unrepresented];
+        });
+      })
+      .catch((err) => {
+        console.warn("Could not fetch projects from backend, using curated showcase:", err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const featured = projectList.filter((p) => p.featured);
+  const rest = projectList.filter((p) => !p.featured);
 
   const filtered =
     activeCategory === "All"
@@ -497,7 +624,7 @@ export default function ProjectsPage() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-sm font-medium text-primary bg-primary/10 rounded-full border border-primary/20">
             <Network className="w-4 h-4" />
-            <span>6+ Years · 12+ Projects · 4 Live Production Platforms</span>
+            <span>6+ Years · 15+ Projects · Production & Multi-Vendor Labs</span>
           </div>
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-foreground mb-5">
             Engineering{" "}
@@ -506,13 +633,12 @@ export default function ProjectsPage() {
             </span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
-            A complete record of production systems, open-source tools, and ALX coursework
-            that demonstrates network engineering discipline applied to full-stack development.
+            Enterprise network simulations (Cisco Packet Tracer, EVE-NG, GNS3), AWS Well-Architected cloud solutions, Flutter mobile apps, and production full-stack systems.
           </p>
         </motion.div>
 
         {/* ── Stats ── */}
-        <StatsBar />
+        <StatsBar projects={projectList} />
 
         {/* ── Featured Projects ── */}
         <motion.div
