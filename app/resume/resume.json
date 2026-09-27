@@ -90,12 +90,44 @@
       "description": "Enterprise charity operations and donation management platform independently architected on own accord for Jamia Mosque Committee. Features real-time donation analytics, category allocations, audit trails, and fund transfers. 100% complete and launch-ready."
     },
     {
+      "name": "Enterprise Multi-Branch WAN & Core Topology (Cisco Packet Tracer / EVE-NG)",
+      "role": "Network Architect & Engineer",
+      "period": "2024 – 2025",
+      "url": "https://github.com/AbuArwa001",
+      "tech": "Cisco Packet Tracer, EVE-NG, GNS3, Wireshark, Cisco IOS, BGP, OSPF, VLANs, HSRP",
+      "description": "Multi-branch enterprise WAN topology simulated in Cisco Packet Tracer & EVE-NG featuring dual-homed eBGP, multi-area OSPF with redistribution, 802.1Q trunking, and HSRP failover validated with Wireshark."
+    },
+    {
+      "name": "AWS Multi-Tier High-Availability Cloud Infrastructure",
+      "role": "Cloud Solutions Architect (Terraform IaC)",
+      "period": "2025",
+      "url": "https://github.com/AbuArwa001",
+      "tech": "AWS, AWS VPC, Terraform, EC2, S3, RDS Multi-AZ, Route 53, CloudFront, IAM",
+      "description": "Production-ready 3-tier AWS architecture provisioned via Terraform across multiple AZs with auto-scaling EC2, RDS Multi-AZ PostgreSQL, S3, CloudFront CDN, and Route 53 DNS routing."
+    },
+    {
+      "name": "Datacenter Spine-Leaf & Perimeter Firewall Lab (GNS3)",
+      "role": "Virtualization & Security Engineer",
+      "period": "2024",
+      "url": "https://github.com/AbuArwa001",
+      "tech": "GNS3, Cisco IOS, pfSense, Wireshark, IPsec VPN, Python Netmiko, BGP",
+      "description": "Datacenter spine-and-leaf emulation in GNS3 combining Cisco switches, pfSense CARP failover firewalls, DMZ isolation, and Site-to-Site IPsec VPN tunnels."
+    },
+    {
       "name": "SeaFood Platform & Analytics Dashboard",
       "role": "Full-Stack Developer",
       "period": "2025 – 2026",
       "url": "https://seafooddashboard.vercel.app/",
       "tech": "Next.js, TypeScript, Python DRF, Recharts, PostgreSQL",
       "description": "Full-stack seafood supply management system featuring inventory tracking, order fulfillment, and interactive sales visualization."
+    },
+    {
+      "name": "Cross-Platform Mobile Platform (Flutter & Android)",
+      "role": "Mobile App Developer",
+      "period": "2025",
+      "url": "https://github.com/AbuArwa001",
+      "tech": "Flutter, Dart, Android Studio, Firebase, SQLite, Riverpod, REST API",
+      "description": "Modern Android application built with Flutter featuring Riverpod state management, offline-first SQLite synchronization, Firebase Cloud Messaging, and biometric authentication."
     }
   ],
   "skills": [
