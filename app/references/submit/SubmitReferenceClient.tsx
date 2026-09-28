@@ -21,6 +21,9 @@ import {
   Eye,
   ShieldCheck,
   HeartHandshake,
+  Star,
+  BadgeCheck,
+  Globe,
 } from "lucide-react";
 import { getApiUrl } from "@/lib/config";
 import SubmissionProgressModal, { ProgressStage } from "./SubmissionProgressModal";
@@ -52,6 +55,36 @@ function getInitials(name: string): string {
   return (parts[0]?.[0] ?? "?").toUpperCase();
 }
 
+const inputCls =
+  "w-full px-4 py-3 sm:py-2.5 rounded-xl border border-border/70 bg-background/50 text-base sm:text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 min-h-[44px] hover:border-border";
+
+function SectionHeader({
+  step,
+  icon: Icon,
+  title,
+  subtitle,
+}: {
+  step: number;
+  icon: React.ElementType;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div className="flex items-start gap-3.5 pb-4 border-b border-border/40">
+      <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+        <Icon className="w-4 h-4 text-primary" />
+      </div>
+      <div>
+        <span className="text-[10px] font-mono font-bold text-primary/70 uppercase tracking-widest">
+          Step {step}
+        </span>
+        <h3 className="text-sm font-bold text-foreground leading-tight">{title}</h3>
+        <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function SubmitReferenceClient() {
   const searchParams = useSearchParams();
 
@@ -71,12 +104,10 @@ export default function SubmitReferenceClient() {
   const [error, setError] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<"form" | "preview">("form");
 
-  // Progress Modal State
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [progressStage, setProgressStage] = useState<ProgressStage>("validating");
   const [progressPercent, setProgressPercent] = useState(0);
 
-  // Pre-fill from query params if Khalfan provided them in the invite link
   useEffect(() => {
     const qName = searchParams.get("name") || searchParams.get("referee") || "";
     const qEmail = searchParams.get("email") || "";
@@ -92,13 +123,10 @@ export default function SubmitReferenceClient() {
     }));
   }, [searchParams]);
 
-  // Normalize LinkedIn / website URLs (auto-prefixes https:// if missing)
   const normalizeUrl = (raw: string): string => {
     const trimmed = raw.trim();
     if (!trimmed) return "";
-    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-      return trimmed;
-    }
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
     return `https://${trimmed}`;
   };
 
@@ -107,16 +135,11 @@ export default function SubmitReferenceClient() {
     setMobileTab("form");
     if (typeof window !== "undefined") {
       const el = document.getElementById("endorsement-form-card");
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
-  const handleChange = (
-    field: keyof typeof formData,
-    value: string
-  ) => {
+  const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (error) setError(null);
   };
@@ -126,27 +149,22 @@ export default function SubmitReferenceClient() {
     notifyError(error || "Submission failed.");
   };
 
-  const handleRetrySubmit = () => {
-    handleSubmit();
-  };
+  const handleRetrySubmit = () => handleSubmit();
 
   const handleSubmit = async (e?: React.FormEvent) => {
-    if (e && typeof e.preventDefault === "function") {
-      e.preventDefault();
-    }
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
 
     if (!formData.name.trim()) return notifyError("Please provide your full name.");
     if (!formData.title.trim()) return notifyError("Please provide your job title.");
     if (!formData.company.trim()) return notifyError("Please provide your organization / company.");
-    if (!formData.relationship.trim()) return notifyError("Please specify your professional relationship to Khalfan.");
+    if (!formData.relationship.trim())
+      return notifyError("Please specify your professional relationship to Khalfan.");
     if (!formData.quote.trim()) return notifyError("Please write a brief endorsement or quote.");
     if (!formData.email.trim()) return notifyError("Please provide your work or professional email.");
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email.trim())) {
+    if (!emailRegex.test(formData.email.trim()))
       return notifyError("Please enter a valid email address (e.g. referee@company.org).");
-    }
 
     const payload = {
       ...formData,
@@ -170,7 +188,6 @@ export default function SubmitReferenceClient() {
 
     try {
       await sleep(350);
-
       setProgressStage("transmitting");
       setProgressPercent(60);
 
@@ -187,13 +204,8 @@ export default function SubmitReferenceClient() {
         });
       } catch (primaryErr) {
         const isLocal = primaryUrl.includes("localhost") || primaryUrl.includes("127.0.0.1");
-        if (isLocal) {
-          throw new Error(
-            `Failed to reach local backend at ${primaryUrl}. Please ensure your Django server is running.`
-          );
-        }
-
-        // If production server primary domain fails, try fallback endpoint
+        if (isLocal)
+          throw new Error(`Failed to reach local backend at ${primaryUrl}. Please ensure your Django server is running.`);
         if (primaryUrl !== "https://api.khalfanathman.dev") {
           res = await fetch(fallbackEndpoint, {
             method: "POST",
@@ -211,28 +223,20 @@ export default function SubmitReferenceClient() {
         if (errJson) {
           if (errJson.detail) errMsg = errJson.detail;
           else if (errJson.message) errMsg = errJson.message;
-          else {
+          else
             errMsg = Object.entries(errJson)
-              .map(
-                ([k, v]) =>
-                  `${k.charAt(0).toUpperCase() + k.slice(1)}: ${
-                    Array.isArray(v) ? v.join(", ") : v
-                  }`
-              )
+              .map(([k, v]) => `${k.charAt(0).toUpperCase() + k.slice(1)}: ${Array.isArray(v) ? v.join(", ") : v}`)
               .join(" • ");
-          }
         } else {
           errMsg = `Server returned HTTP ${res.status}`;
         }
         throw new Error(errMsg);
       }
 
-      // Step 3: Finalizing
       setProgressStage("finalizing");
       setProgressPercent(90);
       await sleep(400);
 
-      // Step 4: Success confirmation
       setProgressStage("success");
       setProgressPercent(100);
       await sleep(750);
@@ -240,9 +244,7 @@ export default function SubmitReferenceClient() {
       setShowProgressModal(false);
       setSubmitted(true);
     } catch (err: any) {
-      const msg =
-        err?.message ||
-        "Failed to submit your reference. Please check your network and try again.";
+      const msg = err?.message || "Failed to submit your reference. Please check your network and try again.";
       setError(msg);
       setProgressStage("error");
     } finally {
@@ -250,96 +252,178 @@ export default function SubmitReferenceClient() {
     }
   };
 
+  const sec1Done = !!(formData.name.trim() && formData.title.trim() && formData.company.trim());
+  const sec2Done = !!formData.relationship.trim();
+  const sec3Done = !!formData.quote.trim();
+  const sec4Done = !!formData.email.trim();
+  const completedCount = [sec1Done, sec2Done, sec3Done, sec4Done].filter(Boolean).length;
+
   return (
     <div className="relative min-h-screen bg-background selection:bg-primary/30 pt-24 pb-16 sm:py-28 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
-      {/* Ambient background glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[350px] sm:h-[450px] opacity-20 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-violet-600/40 via-primary/30 to-sky-500/20 blur-[130px] rounded-full" />
+      {/* Ambient background */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[1200px] h-[500px] opacity-[0.15] pointer-events-none -z-10">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary rounded-full blur-[160px]" />
+        <div className="absolute top-20 right-1/4 w-[300px] h-[300px] bg-violet-600 rounded-full blur-[120px]" />
       </div>
 
       <div className="container max-w-6xl mx-auto">
         {/* Back Link */}
-        <div className="mb-8">
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-10"
+        >
           <Link
             href="/references"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors group"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to References</span>
+            <span className="w-7 h-7 rounded-lg bg-card/80 border border-border/60 flex items-center justify-center group-hover:border-primary/40 transition-colors">
+              <ArrowLeft className="w-3.5 h-3.5" />
+            </span>
+            Back to References
           </Link>
-        </div>
+        </motion.div>
 
-        {/* ── Success State ── */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {submitted ? (
+            /* ── Success State ── */
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
+              key="success"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="max-w-2xl mx-auto rounded-3xl border border-primary/30 bg-card/80 backdrop-blur-xl p-8 sm:p-12 text-center shadow-2xl relative overflow-hidden"
+              className="max-w-2xl mx-auto"
             >
-              <div className="w-20 h-20 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 mx-auto flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/10">
-                <CheckCircle2 className="w-10 h-10" />
-              </div>
+              <div className="relative rounded-3xl border border-primary/20 bg-card/80 backdrop-blur-2xl p-8 sm:p-12 text-center shadow-2xl overflow-hidden">
+                <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-20 right-0 w-48 h-48 bg-violet-600/15 rounded-full blur-3xl pointer-events-none" />
 
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-primary/10 text-primary border border-primary/20 mb-4">
-                <HeartHandshake className="w-3.5 h-3.5" /> Endorsement Received
-              </span>
-
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-4">
-                Thank You, {formData.name || "Referee"}!
-              </h2>
-
-              <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-lg mx-auto mb-8">
-                Your professional reference and testimonial have been successfully recorded. Khalfan
-                will review it and publish it on the portfolio. Thank you for your support and partnership!
-              </p>
-
-              <div className="rounded-2xl border border-border/60 bg-muted/30 p-5 text-left mb-8 max-w-md mx-auto">
-                <p className="text-xs font-mono uppercase tracking-wider text-primary font-semibold mb-2">
-                  Submission Summary
-                </p>
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p><strong className="text-foreground">Role:</strong> {formData.title} at {formData.company}</p>
-                  <p><strong className="text-foreground">Relationship:</strong> {formData.relationship}</p>
-                  <p><strong className="text-foreground">Email:</strong> {formData.email}</p>
+                <div className="relative w-24 h-24 mx-auto mb-6">
+                  <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping [animation-duration:2s] [animation-iteration-count:3]" />
+                  <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-emerald-400/20 border border-primary/30 flex items-center justify-center shadow-xl shadow-primary/10">
+                    <CheckCircle2 className="w-12 h-12 text-primary" />
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                <Link
-                  href="/references"
-                  className="px-6 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs transition-all shadow-md shadow-primary/20"
-                >
-                  View Live References
-                </Link>
-                <Link
-                  href="/"
-                  className="px-6 py-3 rounded-xl border border-border/80 bg-background/80 hover:bg-muted font-semibold text-xs text-foreground transition-all"
-                >
-                  Explore Portfolio Home
-                </Link>
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-primary/10 text-primary border border-primary/20 mb-5">
+                  <HeartHandshake className="w-3.5 h-3.5" /> Endorsement Received
+                </span>
+
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-4 font-heading">
+                  Thank You,{" "}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">
+                    {formData.name || "Referee"}!
+                  </span>
+                </h2>
+
+                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-lg mx-auto mb-8">
+                  Your professional reference and testimonial have been successfully recorded. Khalfan
+                  will review it and publish it on the portfolio — thank you for your time and support!
+                </p>
+
+                <div className="rounded-2xl border border-border/60 bg-muted/30 p-5 text-left mb-8 max-w-md mx-auto space-y-2">
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-primary font-bold mb-3">
+                    Submission Summary
+                  </p>
+                  {[
+                    { label: "Name", value: formData.name },
+                    { label: "Role", value: `${formData.title} at ${formData.company}` },
+                    { label: "Relationship", value: formData.relationship },
+                    { label: "Email", value: formData.email },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-start gap-2 text-xs">
+                      <BadgeCheck className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground">
+                        <strong className="text-foreground">{label}:</strong> {value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <Link
+                    href="/references"
+                    className="px-6 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm transition-all shadow-lg shadow-primary/20 flex items-center gap-2"
+                  >
+                    <Globe className="w-4 h-4" />
+                    View Live References
+                  </Link>
+                  <Link
+                    href="/"
+                    className="px-6 py-3 rounded-xl border border-border/80 bg-background/80 hover:bg-muted font-semibold text-sm text-foreground transition-all flex items-center gap-2"
+                  >
+                    Explore Portfolio
+                    <ArrowLeft className="w-4 h-4 rotate-180" />
+                  </Link>
+                </div>
               </div>
             </motion.div>
           ) : (
             /* ── Form + Live Preview Grid ── */
-            <div>
-              {/* Header */}
-              <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12 px-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 sm:mb-4 text-xs font-medium text-primary bg-primary/10 rounded-full border border-primary/20">
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {/* Page Header */}
+              <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 px-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="inline-flex items-center gap-2 px-4 py-1.5 mb-4 text-xs font-semibold text-primary bg-primary/10 rounded-full border border-primary/20"
+                >
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Professional Endorsement Portal</span>
-                </div>
-                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground mb-3 sm:mb-4 leading-tight">
-                  Referee <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-400">Endorsement</span> Form
-                </h1>
-                <p className="text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed">
-                  Thank you for taking a moment to provide a verified professional testimonial for
-                  <strong> Khalfan Athman</strong>. Your feedback highlights real-world technical impact and work ethic.
-                </p>
+                  Professional Endorsement Portal
+                </motion.div>
+
+                <motion.h1
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground mb-4 leading-tight font-heading"
+                >
+                  Referee{" "}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-400 to-teal-400">
+                    Endorsement
+                  </span>{" "}
+                  Form
+                </motion.h1>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-sm sm:text-base text-muted-foreground leading-relaxed"
+                >
+                  Thank you for taking a moment to provide a verified professional testimonial for{" "}
+                  <strong className="text-foreground">Khalfan Athman</strong>. Your feedback highlights
+                  real-world technical impact and work ethic.
+                </motion.p>
+
+                {/* Trust bar */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex flex-wrap items-center justify-center gap-5 mt-6 text-[11px] text-muted-foreground"
+                >
+                  {[
+                    { icon: ShieldCheck, text: "Secure & Encrypted" },
+                    { icon: BadgeCheck, text: "Admin Reviewed" },
+                    { icon: Star, text: "Publicly Showcased" },
+                  ].map(({ icon: Icon, text }) => (
+                    <span key={text} className="flex items-center gap-1.5">
+                      <Icon className="w-3.5 h-3.5 text-primary" />
+                      {text}
+                    </span>
+                  ))}
+                </motion.div>
               </div>
 
-              {/* Mobile View Toggle (Visible only on < lg screens) */}
+              {/* Mobile View Toggle */}
               <div className="lg:hidden flex items-center justify-center p-1 mb-6 rounded-2xl bg-card/90 backdrop-blur-md border border-border/80 max-w-sm mx-auto shadow-sm">
                 <button
                   type="button"
@@ -351,7 +435,7 @@ export default function SubmitReferenceClient() {
                   }`}
                 >
                   <UserCheck className="w-3.5 h-3.5" />
-                  <span>1. Write Details</span>
+                  1. Write Details
                 </button>
                 <button
                   type="button"
@@ -363,41 +447,53 @@ export default function SubmitReferenceClient() {
                   }`}
                 >
                   <Eye className="w-3.5 h-3.5" />
-                  <span>2. Live Preview</span>
+                  2. Live Preview
                   {formData.name.trim() && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                   )}
                 </button>
               </div>
 
-              {/* Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-                {/* ── Left: The Form ── */}
+              {/* Main Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
+
+                {/* LEFT: Form */}
                 <div
                   id="endorsement-form-card"
-                  className={`lg:col-span-7 rounded-3xl border border-border/60 bg-card/70 backdrop-blur-xl p-5 sm:p-8 shadow-xl ${
-                    mobileTab === "preview" ? "hidden lg:block" : "block"
-                  }`}
+                  className={`lg:col-span-7 ${mobileTab === "preview" ? "hidden lg:block" : "block"}`}
                 >
-                  <form onSubmit={handleSubmit} noValidate className="space-y-5 sm:space-y-6">
+                  <form onSubmit={handleSubmit} noValidate className="space-y-5">
+
                     {/* Error Banner */}
-                    {error && (
-                      <div className="flex items-start gap-3 p-3.5 sm:p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-xs leading-relaxed">
-                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <span>{error}</span>
-                      </div>
-                    )}
+                    <AnimatePresence>
+                      {error && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -6 }}
+                          className="flex items-start gap-3 p-4 rounded-2xl border border-red-500/30 bg-red-500/[0.07] text-red-400 text-sm leading-relaxed"
+                        >
+                          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                          <span>{error}</span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
-                    {/* Personal & Role */}
-                    <div className="space-y-4">
-                      <div className="border-b border-border/40 pb-2">
-                        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                          <UserCheck className="w-4 h-4 text-primary" />
-                          <span>1. Your Details</span>
-                        </h3>
-                        <p className="text-[11px] text-muted-foreground">Who you are and where you lead.</p>
-                      </div>
-
+                    {/* Section 1: Your Details */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className={`rounded-2xl border p-5 sm:p-6 space-y-5 transition-all duration-300 backdrop-blur-sm ${
+                        sec1Done ? "border-primary/30 bg-card/80" : "border-border/60 bg-card/60"
+                      }`}
+                    >
+                      <SectionHeader
+                        step={1}
+                        icon={UserCheck}
+                        title="Your Details"
+                        subtitle="Who you are and where you lead."
+                      />
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                           <label className="text-xs font-semibold text-foreground">
@@ -409,10 +505,9 @@ export default function SubmitReferenceClient() {
                             placeholder="e.g. Eng. Ahmed Salim"
                             value={formData.name}
                             onChange={(e) => handleChange("name", e.target.value)}
-                            className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
+                            className={inputCls}
                           />
                         </div>
-
                         <div className="space-y-1.5">
                           <label className="text-xs font-semibold text-foreground">
                             Job Title / Designation <span className="text-red-400">*</span>
@@ -423,11 +518,10 @@ export default function SubmitReferenceClient() {
                             placeholder="e.g. Lead Infrastructure Architect"
                             value={formData.title}
                             onChange={(e) => handleChange("title", e.target.value)}
-                            className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
+                            className={inputCls}
                           />
                         </div>
                       </div>
-
                       <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-foreground">
                           Organization / Company <span className="text-red-400">*</span>
@@ -438,97 +532,118 @@ export default function SubmitReferenceClient() {
                           placeholder="e.g. SUPKEM ICT Directorate or Jamia Mosque Committee"
                           value={formData.company}
                           onChange={(e) => handleChange("company", e.target.value)}
-                          className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
+                          className={inputCls}
                         />
                       </div>
-                    </div>
+                    </motion.div>
 
-                    {/* Professional Relationship */}
-                    <div className="space-y-4 pt-2">
-                      <div className="border-b border-border/40 pb-2">
-                        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                          <Briefcase className="w-4 h-4 text-primary" />
-                          <span>2. Professional Relationship</span>
-                        </h3>
-                        <p className="text-[11px] text-muted-foreground">In what capacity did you work with or supervise Khalfan?</p>
+                    {/* Section 2: Professional Relationship */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.18 }}
+                      className={`rounded-2xl border p-5 sm:p-6 space-y-5 transition-all duration-300 backdrop-blur-sm ${
+                        sec2Done ? "border-primary/30 bg-card/80" : "border-border/60 bg-card/60"
+                      }`}
+                    >
+                      <SectionHeader
+                        step={2}
+                        icon={Briefcase}
+                        title="Professional Relationship"
+                        subtitle="In what capacity did you work with or supervise Khalfan?"
+                      />
+                      <div className="space-y-3">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-foreground">
+                            Relationship Title <span className="text-red-400">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Direct Supervisor, Project Director, or Lead Mentor"
+                            value={formData.relationship}
+                            onChange={(e) => handleChange("relationship", e.target.value)}
+                            className={inputCls}
+                          />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground mb-2 font-medium uppercase tracking-wider">
+                            Quick picks
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {RELATIONSHIP_PRESETS.map((preset) => (
+                              <button
+                                key={preset}
+                                type="button"
+                                onClick={() => handleChange("relationship", preset)}
+                                className={`text-[11px] px-3 py-1.5 rounded-full border transition-all duration-200 cursor-pointer font-medium ${
+                                  formData.relationship === preset
+                                    ? "bg-primary/15 border-primary/50 text-primary shadow-sm shadow-primary/10"
+                                    : "bg-muted/40 border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border"
+                                }`}
+                              >
+                                {preset}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
+                    </motion.div>
 
-                      <div className="space-y-2">
-                        <label className="text-xs font-semibold text-foreground">
-                          Relationship Title <span className="text-red-400">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. Direct Supervisor, Project Director, or Lead Mentor"
-                          value={formData.relationship}
-                          onChange={(e) => handleChange("relationship", e.target.value)}
-                          className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
-                        />
-                      </div>
-
-                      {/* Quick presets */}
-                      <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-1">
-                        <span className="text-[11px] text-muted-foreground self-center mr-1">Quick picks:</span>
-                        {RELATIONSHIP_PRESETS.map((preset) => (
-                          <button
-                            key={preset}
-                            type="button"
-                            onClick={() => handleChange("relationship", preset)}
-                            className={`text-xs sm:text-[10px] px-3 py-1.5 sm:px-2.5 sm:py-1 rounded-full border transition-all cursor-pointer ${
-                              formData.relationship === preset
-                                ? "bg-primary/20 border-primary text-primary font-semibold"
-                                : "bg-muted/40 border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted"
+                    {/* Section 3: Endorsement Quote */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.26 }}
+                      className={`rounded-2xl border p-5 sm:p-6 space-y-5 transition-all duration-300 backdrop-blur-sm ${
+                        sec3Done ? "border-primary/30 bg-card/80" : "border-border/60 bg-card/60"
+                      }`}
+                    >
+                      <SectionHeader
+                        step={3}
+                        icon={Quote}
+                        title="Endorsement & Recommendation"
+                        subtitle="Share your thoughts on Khalfan's technical expertise, problem solving, delivery, or communication."
+                      />
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-foreground">
+                            Your Quote / Testimonial <span className="text-red-400">*</span>
+                          </label>
+                          <span
+                            className={`text-[10px] font-mono tabular-nums transition-colors ${
+                              formData.quote.length > 50 ? "text-primary" : "text-muted-foreground"
                             }`}
                           >
-                            {preset}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Recommendation Quote */}
-                    <div className="space-y-4 pt-2">
-                      <div className="border-b border-border/40 pb-2">
-                        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                          <Quote className="w-4 h-4 text-primary" />
-                          <span>3. Endorsement &amp; Recommendation</span>
-                        </h3>
-                        <p className="text-[11px] text-muted-foreground">
-                          Share your thoughts on Khalfan&apos;s technical expertise, problem solving, delivery, or communication.
-                        </p>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-foreground flex justify-between items-center">
-                          <span>Your Quote / Testimonial <span className="text-red-400">*</span></span>
-                          <span className="text-[10px] font-mono text-muted-foreground">
-                            {formData.quote.length} characters
+                            {formData.quote.length} chars
                           </span>
-                        </label>
+                        </div>
                         <textarea
-                          rows={4}
+                          rows={5}
                           required
                           placeholder="e.g. Khalfan engineered our national digital portal with remarkable reliability. His mastery of both network infrastructure and decoupled web applications delivered a system that effortlessly handled high concurrent loads..."
                           value={formData.quote}
                           onChange={(e) => handleChange("quote", e.target.value)}
-                          className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-y leading-relaxed min-h-[120px]"
+                          className={`${inputCls} resize-y leading-relaxed min-h-[140px]`}
                         />
                       </div>
-                    </div>
+                    </motion.div>
 
-                    {/* Contact & Verification */}
-                    <div className="space-y-4 pt-2">
-                      <div className="border-b border-border/40 pb-2">
-                        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                          <Mail className="w-4 h-4 text-primary" />
-                          <span>4. Contact Information</span>
-                        </h3>
-                        <p className="text-[11px] text-muted-foreground">
-                          Used for professional verification and optional direct referee contact buttons.
-                        </p>
-                      </div>
-
+                    {/* Section 4: Contact Information */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.34 }}
+                      className={`rounded-2xl border p-5 sm:p-6 space-y-5 transition-all duration-300 backdrop-blur-sm ${
+                        sec4Done ? "border-primary/30 bg-card/80" : "border-border/60 bg-card/60"
+                      }`}
+                    >
+                      <SectionHeader
+                        step={4}
+                        icon={Mail}
+                        title="Contact Information"
+                        subtitle="Used for professional verification and optional direct referee contact buttons."
+                      />
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                           <label className="text-xs font-semibold text-foreground">
@@ -540,27 +655,27 @@ export default function SubmitReferenceClient() {
                             placeholder="referee@company.org"
                             value={formData.email}
                             onChange={(e) => handleChange("email", e.target.value)}
-                            className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
+                            className={inputCls}
                           />
                         </div>
-
                         <div className="space-y-1.5">
                           <label className="text-xs font-semibold text-foreground">
-                            Phone Number <span className="text-muted-foreground text-[10px]">(optional)</span>
+                            Phone Number{" "}
+                            <span className="text-muted-foreground text-[10px] font-normal">(optional)</span>
                           </label>
                           <input
                             type="tel"
                             placeholder="+254 7..."
                             value={formData.phone}
                             onChange={(e) => handleChange("phone", e.target.value)}
-                            className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
+                            className={inputCls}
                           />
                         </div>
                       </div>
-
                       <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-foreground">
-                          LinkedIn Profile URL <span className="text-muted-foreground text-[10px]">(optional)</span>
+                          LinkedIn Profile URL{" "}
+                          <span className="text-muted-foreground text-[10px] font-normal">(optional)</span>
                         </label>
                         <input
                           type="text"
@@ -568,138 +683,196 @@ export default function SubmitReferenceClient() {
                           placeholder="e.g. linkedin.com/in/username or https://..."
                           value={formData.linkedin}
                           onChange={(e) => handleChange("linkedin", e.target.value)}
-                          className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-border bg-background/60 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all min-h-[44px]"
+                          className={inputCls}
                         />
                       </div>
-                    </div>
+                    </motion.div>
 
-                    {/* Privacy notice */}
-                    <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-muted/40 border border-border/50 text-[11px] text-muted-foreground leading-relaxed">
+                    {/* Privacy Notice */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                      className="flex items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/15 text-[11px] text-muted-foreground leading-relaxed"
+                    >
                       <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                       <span>
-                        By submitting, you consent to having your name, title, company, and quote showcased on Khalfan Athman&apos;s professional portfolio. Your endorsement is held for administrative review before going live.
+                        By submitting, you consent to having your name, title, company, and quote
+                        showcased on Khalfan Athman&apos;s professional portfolio. Your endorsement is
+                        held for administrative review before going live.
                       </span>
-                    </div>
-
-                    {/* Bottom Error Banner */}
-                    {error && (
-                      <div className="flex items-start gap-3 p-3.5 sm:p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-xs leading-relaxed animate-shake">
-                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <span>{error}</span>
-                      </div>
-                    )}
+                    </motion.div>
 
                     {/* Submit Button */}
-                    <button
+                    <motion.button
                       type="submit"
                       disabled={submitting}
-                      className="w-full py-4 sm:py-3.5 px-6 rounded-2xl bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-700 text-white font-bold text-sm shadow-xl shadow-primary/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[48px]"
+                      whileHover={{ scale: submitting ? 1 : 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="relative w-full py-4 sm:py-3.5 px-6 rounded-2xl bg-gradient-to-r from-primary via-emerald-500 to-teal-500 hover:from-primary/90 hover:via-emerald-500/90 hover:to-teal-500/90 text-white font-bold text-sm shadow-xl shadow-primary/25 transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-h-[52px]"
                     >
                       {submitting ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Submitting Endorsement...</span>
+                          Submitting Endorsement...
                         </>
                       ) : (
                         <>
                           <Send className="w-4 h-4" />
-                          <span>Submit Professional Endorsement</span>
+                          Submit Professional Endorsement
                         </>
                       )}
-                    </button>
+                    </motion.button>
                   </form>
                 </div>
 
-                {/* ── Right: Live Preview Card ── */}
+                {/* RIGHT: Live Preview */}
                 <div
                   className={`lg:col-span-5 lg:sticky lg:top-28 space-y-4 ${
                     mobileTab === "form" ? "hidden lg:block" : "block"
                   }`}
                 >
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/60 border border-border/60 text-xs font-mono text-muted-foreground w-fit">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/60 border border-border/60 text-xs font-mono text-muted-foreground w-fit">
                     <Eye className="w-3.5 h-3.5 text-primary" />
-                    <span>Live Portfolio Card Preview</span>
+                    Live Portfolio Card Preview
+                    {formData.name.trim() && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    )}
                   </div>
 
                   <p className="text-xs text-muted-foreground">
-                    This is an exact preview of how your reference will be showcased to prospective clients, employers, and partners:
+                    This is an exact preview of how your reference will appear to prospective
+                    clients, employers, and partners:
                   </p>
 
                   {/* Rendered Reference Card */}
-                  <div className="group relative flex flex-col rounded-2xl border border-border/80 bg-card/90 backdrop-blur-md p-5 sm:p-6 shadow-xl transition-all">
-                    {/* Decorative quote mark */}
-                    <Quote className="absolute top-5 right-5 h-8 w-8 text-primary/10" />
+                  <motion.div
+                    layout
+                    className="relative rounded-2xl border border-border/70 bg-card/95 backdrop-blur-md p-6 shadow-xl overflow-hidden"
+                  >
+                    {/* Gradient top stripe */}
+                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary/60 via-emerald-400/40 to-transparent rounded-t-2xl" />
 
-                    {/* Quote */}
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-6 flex-1 italic min-h-[4rem] break-words">
+                    <Quote className="absolute top-5 right-5 h-10 w-10 text-primary/8" />
+
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-6 italic min-h-[4rem] break-words pr-8">
                       &ldquo;
                       {formData.quote.trim() ||
-                        "Your endorsement and recommendation quote will appear here as you write it..."}
+                        "Your endorsement and recommendation quote will appear here as you type..."}
                       &rdquo;
                     </p>
 
-                    {/* Divider */}
                     <div className="h-px bg-gradient-to-r from-primary/25 via-border/40 to-transparent mb-5" />
 
-                    {/* Referee info */}
-                    <div className="flex items-start gap-3.5 sm:gap-4">
+                    <div className="flex items-start gap-3.5">
                       <div
-                        className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${AVATAR_COLORS[0]} flex items-center justify-center text-white text-base sm:text-lg font-extrabold shadow-lg shrink-0`}
+                        className={`w-12 h-12 rounded-xl bg-gradient-to-br ${AVATAR_COLORS[0]} flex items-center justify-center text-white text-base font-extrabold shadow-lg shrink-0`}
                       >
                         {getInitials(formData.name)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-foreground text-sm sm:text-base leading-tight truncate break-words">
-                          {formData.name.trim() || "Your Name"}
+                        <p className="font-bold text-foreground text-sm leading-tight truncate">
+                          {formData.name.trim() || (
+                            <span className="text-muted-foreground font-normal italic">Your Name</span>
+                          )}
                         </p>
-                        <p className="text-xs sm:text-sm text-primary font-medium mt-0.5 truncate">
-                          {formData.title.trim() || "Job Title"}
+                        <p className="text-xs text-primary font-medium mt-0.5 truncate">
+                          {formData.title.trim() || (
+                            <span className="text-muted-foreground font-normal italic">Job Title</span>
+                          )}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                          <Building2 className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{formData.company.trim() || "Company / Organisation"}</span>
+                          <Building2 className="h-3 w-3 shrink-0 text-primary/60" />
+                          <span className="truncate">
+                            {formData.company.trim() || <span className="italic">Company / Organisation</span>}
+                          </span>
                         </p>
-                        <p className="text-xs text-muted-foreground/80 mt-0.5 flex items-center gap-1">
-                          <UserCheck className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{formData.relationship.trim() || "Professional Relationship"}</span>
+                        <p className="text-xs text-muted-foreground/70 mt-0.5 flex items-center gap-1">
+                          <UserCheck className="h-3 w-3 shrink-0 text-primary/50" />
+                          <span className="truncate">
+                            {formData.relationship.trim() || <span className="italic">Professional Relationship</span>}
+                          </span>
                         </p>
                       </div>
                     </div>
 
-                    {/* Contact links preview */}
                     {(formData.email || formData.phone || formData.linkedin) && (
-                      <div className="flex flex-wrap gap-2.5 sm:gap-3 mt-5 pt-4 border-t border-border/40">
+                      <div className="flex flex-wrap gap-2.5 mt-5 pt-4 border-t border-border/40">
                         {formData.email && (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground break-all">
-                            <Mail className="h-3.5 w-3.5 shrink-0" />
+                          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground break-all">
+                            <Mail className="h-3.5 w-3.5 shrink-0 text-primary/60" />
                             {formData.email}
                           </span>
                         )}
                         {formData.phone && (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground">
-                            <Phone className="h-3.5 w-3.5 shrink-0" />
+                          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                            <Phone className="h-3.5 w-3.5 shrink-0 text-primary/60" />
                             {formData.phone}
                           </span>
                         )}
                         {formData.linkedin && (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground">
-                            <Linkedin className="h-3.5 w-3.5 shrink-0" />
+                          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                            <Linkedin className="h-3.5 w-3.5 shrink-0 text-primary/60" />
                             LinkedIn
                           </span>
                         )}
                       </div>
                     )}
+                  </motion.div>
+
+                  {/* Form Progress Tracker */}
+                  <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-4 space-y-2.5">
+                    <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
+                      Form Progress
+                    </p>
+                    {[
+                      { label: "Personal Details", done: sec1Done },
+                      { label: "Relationship", done: sec2Done },
+                      { label: "Endorsement Quote", done: sec3Done },
+                      { label: "Contact Info", done: sec4Done },
+                    ].map(({ label, done }) => (
+                      <div key={label} className="flex items-center gap-2.5">
+                        <div
+                          className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
+                            done
+                              ? "bg-primary/20 border border-primary/40"
+                              : "border border-border/60 bg-background/50"
+                          }`}
+                        >
+                          {done && <CheckCircle2 className="w-3 h-3 text-primary" />}
+                        </div>
+                        <span
+                          className={`text-xs transition-colors duration-300 flex-1 ${
+                            done ? "text-foreground font-medium" : "text-muted-foreground"
+                          }`}
+                        >
+                          {label}
+                        </span>
+                        {done && (
+                          <span className="text-[10px] text-primary font-mono">&#10003; Done</span>
+                        )}
+                      </div>
+                    ))}
+                    <div className="pt-1">
+                      <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-full"
+                          animate={{ width: `${(completedCount / 4) * 100}%` }}
+                          transition={{ ease: "easeOut", duration: 0.4 }}
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Mobile Quick Action Pills in Preview Mode */}
-                  <div className="lg:hidden flex items-center gap-3 pt-2">
+                  {/* Mobile quick actions in preview mode */}
+                  <div className="lg:hidden flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => setMobileTab("form")}
                       className="flex-1 py-3 px-4 rounded-xl border border-border/80 bg-card hover:bg-muted text-foreground text-xs font-semibold transition-all flex items-center justify-center gap-2"
                     >
                       <ArrowLeft className="w-3.5 h-3.5" />
-                      <span>Back to Edit</span>
+                      Back to Edit
                     </button>
                     <button
                       type="button"
@@ -707,22 +880,18 @@ export default function SubmitReferenceClient() {
                       disabled={submitting}
                       className="flex-1 py-3 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
                     >
-                      {submitting ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Send className="w-3.5 h-3.5" />
-                      )}
-                      <span>Submit Now</span>
+                      {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                      Submit Now
                     </button>
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* ── Submission Progress Modal ── */}
+      {/* Submission Progress Modal */}
       <SubmissionProgressModal
         isOpen={showProgressModal}
         stage={progressStage}
