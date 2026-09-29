@@ -24,6 +24,8 @@ import {
   Star,
   BadgeCheck,
   Globe,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 import { getApiUrl } from "@/lib/config";
 import SubmissionProgressModal, { ProgressStage } from "./SubmissionProgressModal";
@@ -58,33 +60,82 @@ function getInitials(name: string): string {
 const inputCls =
   "w-full px-4 py-3 sm:py-2.5 rounded-xl border border-border/70 bg-background/50 text-base sm:text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 min-h-[44px] hover:border-border";
 
-function SectionHeader({
-  step,
-  icon: Icon,
-  title,
-  subtitle,
+/* ─────────────────────────────────────────────────────────────────
+   STEP DEFINITIONS
+───────────────────────────────────────────────────────────────── */
+const STEPS = [
+  { label: "Your Details",   icon: UserCheck },
+  { label: "Relationship",   icon: Briefcase },
+  { label: "Endorsement",    icon: Quote     },
+  { label: "Contact",        icon: Mail      },
+];
+
+/* ─────────────────────────────────────────────────────────────────
+   STEP INDICATOR
+───────────────────────────────────────────────────────────────── */
+function StepIndicator({
+  currentStep,
+  completedSteps,
 }: {
-  step: number;
-  icon: React.ElementType;
-  title: string;
-  subtitle: string;
+  currentStep: number;
+  completedSteps: boolean[];
 }) {
   return (
-    <div className="flex items-start gap-3.5 pb-4 border-b border-border/40">
-      <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
-        <Icon className="w-4 h-4 text-primary" />
-      </div>
-      <div>
-        <span className="text-[10px] font-mono font-bold text-primary/70 uppercase tracking-widest">
-          Step {step}
-        </span>
-        <h3 className="text-sm font-bold text-foreground leading-tight">{title}</h3>
-        <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{subtitle}</p>
-      </div>
+    <div className="flex items-center justify-center w-full max-w-lg mx-auto mb-8">
+      {STEPS.map((step, idx) => {
+        const Icon = step.icon;
+        const isActive = idx === currentStep;
+        const isDone   = completedSteps[idx];
+        const isLast   = idx === STEPS.length - 1;
+
+        return (
+          <div key={idx} className="flex items-center flex-1 min-w-0">
+            {/* Circle + label */}
+            <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+              <motion.div
+                animate={{ scale: isActive ? 1.1 : 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all duration-300 ${
+                  isDone
+                    ? "bg-primary/20 border-primary/40 text-primary"
+                    : isActive
+                    ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/30"
+                    : "bg-card/60 border-border/50 text-muted-foreground"
+                }`}
+              >
+                {isDone ? <CheckCircle2 className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+              </motion.div>
+              <span
+                className={`text-[10px] font-semibold text-center leading-tight transition-colors duration-200 hidden sm:block ${
+                  isActive ? "text-foreground" : isDone ? "text-primary/70" : "text-muted-foreground"
+                }`}
+              >
+                {step.label}
+              </span>
+            </div>
+
+            {/* Connector line */}
+            {!isLast && (
+              <div className="flex-1 mx-2 mt-[-14px] sm:mt-[-28px]">
+                <div className="h-0.5 w-full bg-border/40 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-primary to-emerald-400"
+                    animate={{ width: isDone ? "100%" : "0%" }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   MAIN COMPONENT
+───────────────────────────────────────────────────────────────── */
 export default function SubmitReferenceClient() {
   const searchParams = useSearchParams();
 
@@ -99,44 +150,37 @@ export default function SubmitReferenceClient() {
     linkedin: "",
   });
 
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [mobileTab, setMobileTab] = useState<"form" | "preview">("form");
+  const [currentStep, setCurrentStep] = useState(0);
+  const [direction,   setDirection]   = useState(1); // 1 = fwd, -1 = back
+  const [submitting,  setSubmitting]  = useState(false);
+  const [submitted,   setSubmitted]   = useState(false);
+  const [error,       setError]       = useState<string | null>(null);
+  const [mobileTab,   setMobileTab]   = useState<"form" | "preview">("form");
 
   const [showProgressModal, setShowProgressModal] = useState(false);
-  const [progressStage, setProgressStage] = useState<ProgressStage>("validating");
-  const [progressPercent, setProgressPercent] = useState(0);
+  const [progressStage,     setProgressStage]     = useState<ProgressStage>("validating");
+  const [progressPercent,   setProgressPercent]   = useState(0);
 
+  /* Pre-fill from URL query params */
   useEffect(() => {
-    const qName = searchParams.get("name") || searchParams.get("referee") || "";
-    const qEmail = searchParams.get("email") || "";
+    const qName    = searchParams.get("name")    || searchParams.get("referee") || "";
+    const qEmail   = searchParams.get("email")   || "";
     const qCompany = searchParams.get("company") || "";
-    const qTitle = searchParams.get("title") || "";
-
+    const qTitle   = searchParams.get("title")   || "";
     setFormData((prev) => ({
       ...prev,
-      name: qName || prev.name,
-      email: qEmail || prev.email,
+      name:    qName    || prev.name,
+      email:   qEmail   || prev.email,
       company: qCompany || prev.company,
-      title: qTitle || prev.title,
+      title:   qTitle   || prev.title,
     }));
   }, [searchParams]);
 
   const normalizeUrl = (raw: string): string => {
-    const trimmed = raw.trim();
-    if (!trimmed) return "";
-    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
-    return `https://${trimmed}`;
-  };
-
-  const notifyError = (msg: string) => {
-    setError(msg);
-    setMobileTab("form");
-    if (typeof window !== "undefined") {
-      const el = document.getElementById("endorsement-form-card");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    const t = raw.trim();
+    if (!t) return "";
+    if (t.startsWith("http://") || t.startsWith("https://")) return t;
+    return `https://${t}`;
   };
 
   const handleChange = (field: keyof typeof formData, value: string) => {
@@ -144,9 +188,47 @@ export default function SubmitReferenceClient() {
     if (error) setError(null);
   };
 
+  /* Per-step validation */
+  const validateStep = (step: number): string | null => {
+    if (step === 0) {
+      if (!formData.name.trim())    return "Please provide your full name.";
+      if (!formData.title.trim())   return "Please provide your job title.";
+      if (!formData.company.trim()) return "Please provide your organization / company.";
+    }
+    if (step === 1) {
+      if (!formData.relationship.trim())
+        return "Please specify your professional relationship to Khalfan.";
+    }
+    if (step === 2) {
+      if (!formData.quote.trim()) return "Please write a brief endorsement or quote.";
+    }
+    if (step === 3) {
+      if (!formData.email.trim())
+        return "Please provide your work or professional email.";
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!re.test(formData.email.trim()))
+        return "Please enter a valid email address (e.g. referee@company.org).";
+    }
+    return null;
+  };
+
+  const goNext = () => {
+    const err = validateStep(currentStep);
+    if (err) { setError(err); return; }
+    setError(null);
+    setDirection(1);
+    setCurrentStep((s) => s + 1);
+  };
+
+  const goBack = () => {
+    setError(null);
+    setDirection(-1);
+    setCurrentStep((s) => s - 1);
+  };
+
   const handleDismissModalError = () => {
     setShowProgressModal(false);
-    notifyError(error || "Submission failed.");
+    setError(error || "Submission failed.");
   };
 
   const handleRetrySubmit = () => handleSubmit();
@@ -154,31 +236,23 @@ export default function SubmitReferenceClient() {
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e && typeof e.preventDefault === "function") e.preventDefault();
 
-    if (!formData.name.trim()) return notifyError("Please provide your full name.");
-    if (!formData.title.trim()) return notifyError("Please provide your job title.");
-    if (!formData.company.trim()) return notifyError("Please provide your organization / company.");
-    if (!formData.relationship.trim())
-      return notifyError("Please specify your professional relationship to Khalfan.");
-    if (!formData.quote.trim()) return notifyError("Please write a brief endorsement or quote.");
-    if (!formData.email.trim()) return notifyError("Please provide your work or professional email.");
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email.trim()))
-      return notifyError("Please enter a valid email address (e.g. referee@company.org).");
+    // Final guard: validate last step
+    const lastErr = validateStep(3);
+    if (lastErr) { setError(lastErr); return; }
 
     const payload = {
       ...formData,
-      name: formData.name.trim(),
-      title: formData.title.trim(),
-      company: formData.company.trim(),
+      name:         formData.name.trim(),
+      title:        formData.title.trim(),
+      company:      formData.company.trim(),
       relationship: formData.relationship.trim(),
-      quote: formData.quote.trim(),
-      email: formData.email.trim(),
-      phone: formData.phone.trim(),
-      linkedin: normalizeUrl(formData.linkedin),
+      quote:        formData.quote.trim(),
+      email:        formData.email.trim(),
+      phone:        formData.phone.trim(),
+      linkedin:     normalizeUrl(formData.linkedin),
     };
 
-    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
     setShowProgressModal(true);
     setProgressStage("validating");
@@ -191,26 +265,28 @@ export default function SubmitReferenceClient() {
       setProgressStage("transmitting");
       setProgressPercent(60);
 
-      const primaryUrl = getApiUrl();
+      const primaryUrl      = getApiUrl();
       const primaryEndpoint = `${primaryUrl}/api/v1/references/submit/`;
       const fallbackEndpoint = "https://api.khalfanathman.dev/api/v1/references/submit/";
 
       let res: Response;
       try {
         res = await fetch(primaryEndpoint, {
-          method: "POST",
+          method:  "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body:    JSON.stringify(payload),
         });
       } catch (primaryErr) {
         const isLocal = primaryUrl.includes("localhost") || primaryUrl.includes("127.0.0.1");
         if (isLocal)
-          throw new Error(`Failed to reach local backend at ${primaryUrl}. Please ensure your Django server is running.`);
+          throw new Error(
+            `Failed to reach local backend at ${primaryUrl}. Please ensure your Django server is running.`
+          );
         if (primaryUrl !== "https://api.khalfanathman.dev") {
           res = await fetch(fallbackEndpoint, {
-            method: "POST",
+            method:  "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
+            body:    JSON.stringify(payload),
           });
         } else {
           throw primaryErr;
@@ -225,7 +301,10 @@ export default function SubmitReferenceClient() {
           else if (errJson.message) errMsg = errJson.message;
           else
             errMsg = Object.entries(errJson)
-              .map(([k, v]) => `${k.charAt(0).toUpperCase() + k.slice(1)}: ${Array.isArray(v) ? v.join(", ") : v}`)
+              .map(
+                ([k, v]) =>
+                  `${k.charAt(0).toUpperCase() + k.slice(1)}: ${Array.isArray(v) ? v.join(", ") : v}`
+              )
               .join(" • ");
         } else {
           errMsg = `Server returned HTTP ${res.status}`;
@@ -244,7 +323,8 @@ export default function SubmitReferenceClient() {
       setShowProgressModal(false);
       setSubmitted(true);
     } catch (err: any) {
-      const msg = err?.message || "Failed to submit your reference. Please check your network and try again.";
+      const msg =
+        err?.message || "Failed to submit your reference. Please check your network and try again.";
       setError(msg);
       setProgressStage("error");
     } finally {
@@ -252,22 +332,32 @@ export default function SubmitReferenceClient() {
     }
   };
 
+  /* Section completion flags */
   const sec1Done = !!(formData.name.trim() && formData.title.trim() && formData.company.trim());
   const sec2Done = !!formData.relationship.trim();
   const sec3Done = !!formData.quote.trim();
   const sec4Done = !!formData.email.trim();
-  const completedCount = [sec1Done, sec2Done, sec3Done, sec4Done].filter(Boolean).length;
+  const completedSteps  = [sec1Done, sec2Done, sec3Done, sec4Done];
+  const completedCount  = completedSteps.filter(Boolean).length;
 
+  /* Slide animation variants */
+  const slideVariants = {
+    enter:  (dir: number) => ({ opacity: 0, x: dir * 48 }),
+    center: { opacity: 1, x: 0 },
+    exit:   (dir: number) => ({ opacity: 0, x: dir * -48 }),
+  };
+
+  /* ── JSX ── */
   return (
     <div className="relative min-h-screen bg-background selection:bg-primary/30 pt-24 pb-16 sm:py-28 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
-      {/* Ambient background */}
+      {/* Ambient blobs */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[1200px] h-[500px] opacity-[0.15] pointer-events-none -z-10">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary rounded-full blur-[160px]" />
         <div className="absolute top-20 right-1/4 w-[300px] h-[300px] bg-violet-600 rounded-full blur-[120px]" />
       </div>
 
       <div className="container max-w-6xl mx-auto">
-        {/* Back Link */}
+        {/* Back link */}
         <motion.div
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
@@ -286,8 +376,8 @@ export default function SubmitReferenceClient() {
         </motion.div>
 
         <AnimatePresence mode="wait">
+          {/* ══════════════════ SUCCESS STATE ══════════════════ */}
           {submitted ? (
-            /* ── Success State ── */
             <motion.div
               key="success"
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -327,10 +417,10 @@ export default function SubmitReferenceClient() {
                     Submission Summary
                   </p>
                   {[
-                    { label: "Name", value: formData.name },
-                    { label: "Role", value: `${formData.title} at ${formData.company}` },
+                    { label: "Name",         value: formData.name },
+                    { label: "Role",         value: `${formData.title} at ${formData.company}` },
                     { label: "Relationship", value: formData.relationship },
-                    { label: "Email", value: formData.email },
+                    { label: "Email",        value: formData.email },
                   ].map(({ label, value }) => (
                     <div key={label} className="flex items-start gap-2 text-xs">
                       <BadgeCheck className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
@@ -359,8 +449,9 @@ export default function SubmitReferenceClient() {
                 </div>
               </div>
             </motion.div>
+
           ) : (
-            /* ── Form + Live Preview Grid ── */
+            /* ══════════════════ WIZARD FORM ══════════════════ */
             <motion.div
               key="form"
               initial={{ opacity: 0, y: 16 }}
@@ -368,7 +459,7 @@ export default function SubmitReferenceClient() {
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
               {/* Page Header */}
-              <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 px-2">
+              <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10 px-2">
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -412,8 +503,8 @@ export default function SubmitReferenceClient() {
                 >
                   {[
                     { icon: ShieldCheck, text: "Secure & Encrypted" },
-                    { icon: BadgeCheck, text: "Admin Reviewed" },
-                    { icon: Star, text: "Publicly Showcased" },
+                    { icon: BadgeCheck,  text: "Admin Reviewed" },
+                    { icon: Star,        text: "Publicly Showcased" },
                   ].map(({ icon: Icon, text }) => (
                     <span key={text} className="flex items-center gap-1.5">
                       <Icon className="w-3.5 h-3.5 text-primary" />
@@ -423,7 +514,7 @@ export default function SubmitReferenceClient() {
                 </motion.div>
               </div>
 
-              {/* Mobile View Toggle */}
+              {/* Mobile tab toggle */}
               <div className="lg:hidden flex items-center justify-center p-1 mb-6 rounded-2xl bg-card/90 backdrop-blur-md border border-border/80 max-w-sm mx-auto shadow-sm">
                 <button
                   type="button"
@@ -454,279 +545,302 @@ export default function SubmitReferenceClient() {
                 </button>
               </div>
 
-              {/* Main Grid */}
+              {/* ── Main two-column grid ── */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
 
-                {/* LEFT: Form */}
+                {/* LEFT: wizard */}
                 <div
                   id="endorsement-form-card"
                   className={`lg:col-span-7 ${mobileTab === "preview" ? "hidden lg:block" : "block"}`}
                 >
-                  <form onSubmit={handleSubmit} noValidate className="space-y-5">
+                  {/* Step indicator */}
+                  <StepIndicator currentStep={currentStep} completedSteps={completedSteps} />
 
-                    {/* Error Banner */}
-                    <AnimatePresence>
-                      {error && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -6 }}
-                          className="flex items-start gap-3 p-4 rounded-2xl border border-red-500/30 bg-red-500/[0.07] text-red-400 text-sm leading-relaxed"
-                        >
-                          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                          <span>{error}</span>
-                        </motion.div>
-                      )}
+                  {/* Error banner */}
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        className="flex items-start gap-3 p-4 mb-4 rounded-2xl border border-red-500/30 bg-red-500/[0.07] text-red-400 text-sm leading-relaxed"
+                      >
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <span>{error}</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Step card */}
+                  <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm overflow-hidden">
+                    <AnimatePresence custom={direction} mode="wait">
+                      <motion.div
+                        key={currentStep}
+                        custom={direction}
+                        variants={slideVariants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                        className="p-5 sm:p-6 min-h-[280px]"
+                      >
+
+                        {/* ── STEP 0: Your Details ── */}
+                        {currentStep === 0 && (
+                          <div className="space-y-5">
+                            <div>
+                              <h2 className="text-base font-bold text-foreground">Your Details</h2>
+                              <p className="text-xs text-muted-foreground mt-0.5">Who you are and where you lead.</p>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-foreground">
+                                  Full Name <span className="text-red-400">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  required
+                                  autoFocus
+                                  placeholder="e.g. Eng. Ahmed Salim"
+                                  value={formData.name}
+                                  onChange={(e) => handleChange("name", e.target.value)}
+                                  className={inputCls}
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-foreground">
+                                  Job Title / Designation <span className="text-red-400">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  required
+                                  placeholder="e.g. Lead Infrastructure Architect"
+                                  value={formData.title}
+                                  onChange={(e) => handleChange("title", e.target.value)}
+                                  className={inputCls}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-semibold text-foreground">
+                                Organization / Company <span className="text-red-400">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="e.g. SUPKEM ICT Directorate or Jamia Mosque Committee"
+                                value={formData.company}
+                                onChange={(e) => handleChange("company", e.target.value)}
+                                className={inputCls}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ── STEP 1: Professional Relationship ── */}
+                        {currentStep === 1 && (
+                          <div className="space-y-5">
+                            <div>
+                              <h2 className="text-base font-bold text-foreground">Professional Relationship</h2>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                In what capacity did you work with or supervise Khalfan?
+                              </p>
+                            </div>
+                            <div className="space-y-3">
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-foreground">
+                                  Relationship Title <span className="text-red-400">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  required
+                                  autoFocus
+                                  placeholder="e.g. Direct Supervisor, Project Director, or Lead Mentor"
+                                  value={formData.relationship}
+                                  onChange={(e) => handleChange("relationship", e.target.value)}
+                                  className={inputCls}
+                                />
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-muted-foreground mb-2 font-medium uppercase tracking-wider">
+                                  Quick picks
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {RELATIONSHIP_PRESETS.map((preset) => (
+                                    <button
+                                      key={preset}
+                                      type="button"
+                                      onClick={() => handleChange("relationship", preset)}
+                                      className={`text-[11px] px-3 py-1.5 rounded-full border transition-all duration-200 cursor-pointer font-medium ${
+                                        formData.relationship === preset
+                                          ? "bg-primary/15 border-primary/50 text-primary shadow-sm shadow-primary/10"
+                                          : "bg-muted/40 border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border"
+                                      }`}
+                                    >
+                                      {preset}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ── STEP 2: Endorsement Quote ── */}
+                        {currentStep === 2 && (
+                          <div className="space-y-5">
+                            <div>
+                              <h2 className="text-base font-bold text-foreground">Endorsement &amp; Recommendation</h2>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                Share your thoughts on Khalfan&apos;s technical expertise, problem solving, delivery, or communication.
+                              </p>
+                            </div>
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <label className="text-xs font-semibold text-foreground">
+                                  Your Quote / Testimonial <span className="text-red-400">*</span>
+                                </label>
+                                <span
+                                  className={`text-[10px] font-mono tabular-nums transition-colors ${
+                                    formData.quote.length > 50 ? "text-primary" : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {formData.quote.length} chars
+                                </span>
+                              </div>
+                              <textarea
+                                rows={8}
+                                required
+                                autoFocus
+                                placeholder="e.g. Khalfan engineered our national digital portal with remarkable reliability. His mastery of both network infrastructure and decoupled web applications delivered a system that effortlessly handled high concurrent loads..."
+                                value={formData.quote}
+                                onChange={(e) => handleChange("quote", e.target.value)}
+                                className={`${inputCls} resize-y leading-relaxed min-h-[180px]`}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ── STEP 3: Contact Information ── */}
+                        {currentStep === 3 && (
+                          <div className="space-y-5">
+                            <div>
+                              <h2 className="text-base font-bold text-foreground">Contact Information</h2>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                Used for professional verification and optional direct contact buttons.
+                              </p>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-foreground">
+                                  Work / Professional Email <span className="text-red-400">*</span>
+                                </label>
+                                <input
+                                  type="email"
+                                  required
+                                  autoFocus
+                                  placeholder="referee@company.org"
+                                  value={formData.email}
+                                  onChange={(e) => handleChange("email", e.target.value)}
+                                  className={inputCls}
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-foreground">
+                                  Phone Number{" "}
+                                  <span className="text-muted-foreground text-[10px] font-normal">(optional)</span>
+                                </label>
+                                <input
+                                  type="tel"
+                                  placeholder="+254 7..."
+                                  value={formData.phone}
+                                  onChange={(e) => handleChange("phone", e.target.value)}
+                                  className={inputCls}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-semibold text-foreground">
+                                LinkedIn Profile URL{" "}
+                                <span className="text-muted-foreground text-[10px] font-normal">(optional)</span>
+                              </label>
+                              <input
+                                type="text"
+                                inputMode="url"
+                                placeholder="e.g. linkedin.com/in/username or https://..."
+                                value={formData.linkedin}
+                                onChange={(e) => handleChange("linkedin", e.target.value)}
+                                className={inputCls}
+                              />
+                            </div>
+
+                            {/* Privacy notice */}
+                            <div className="flex items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/15 text-[11px] text-muted-foreground leading-relaxed">
+                              <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                              <span>
+                                By submitting, you consent to having your name, title, company, and quote
+                                showcased on Khalfan Athman&apos;s professional portfolio. Your endorsement is
+                                held for administrative review before going live.
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                      </motion.div>
                     </AnimatePresence>
 
-                    {/* Section 1: Your Details */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 }}
-                      className={`rounded-2xl border p-5 sm:p-6 space-y-5 transition-all duration-300 backdrop-blur-sm ${
-                        sec1Done ? "border-primary/30 bg-card/80" : "border-border/60 bg-card/60"
-                      }`}
-                    >
-                      <SectionHeader
-                        step={1}
-                        icon={UserCheck}
-                        title="Your Details"
-                        subtitle="Who you are and where you lead."
-                      />
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-semibold text-foreground">
-                            Full Name <span className="text-red-400">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="e.g. Eng. Ahmed Salim"
-                            value={formData.name}
-                            onChange={(e) => handleChange("name", e.target.value)}
-                            className={inputCls}
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-semibold text-foreground">
-                            Job Title / Designation <span className="text-red-400">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="e.g. Lead Infrastructure Architect"
-                            value={formData.title}
-                            onChange={(e) => handleChange("title", e.target.value)}
-                            className={inputCls}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-foreground">
-                          Organization / Company <span className="text-red-400">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. SUPKEM ICT Directorate or Jamia Mosque Committee"
-                          value={formData.company}
-                          onChange={(e) => handleChange("company", e.target.value)}
-                          className={inputCls}
-                        />
-                      </div>
-                    </motion.div>
+                    {/* ── Step navigation bar ── */}
+                    <div className="flex items-center justify-between gap-3 px-5 sm:px-6 pb-5 sm:pb-6 border-t border-border/30 pt-4">
+                      <button
+                        type="button"
+                        onClick={goBack}
+                        disabled={currentStep === 0}
+                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border/70 bg-background/60 hover:bg-muted text-sm font-semibold text-foreground transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back
+                      </button>
 
-                    {/* Section 2: Professional Relationship */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.18 }}
-                      className={`rounded-2xl border p-5 sm:p-6 space-y-5 transition-all duration-300 backdrop-blur-sm ${
-                        sec2Done ? "border-primary/30 bg-card/80" : "border-border/60 bg-card/60"
-                      }`}
-                    >
-                      <SectionHeader
-                        step={2}
-                        icon={Briefcase}
-                        title="Professional Relationship"
-                        subtitle="In what capacity did you work with or supervise Khalfan?"
-                      />
-                      <div className="space-y-3">
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-semibold text-foreground">
-                            Relationship Title <span className="text-red-400">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="e.g. Direct Supervisor, Project Director, or Lead Mentor"
-                            value={formData.relationship}
-                            onChange={(e) => handleChange("relationship", e.target.value)}
-                            className={inputCls}
-                          />
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-muted-foreground mb-2 font-medium uppercase tracking-wider">
-                            Quick picks
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {RELATIONSHIP_PRESETS.map((preset) => (
-                              <button
-                                key={preset}
-                                type="button"
-                                onClick={() => handleChange("relationship", preset)}
-                                className={`text-[11px] px-3 py-1.5 rounded-full border transition-all duration-200 cursor-pointer font-medium ${
-                                  formData.relationship === preset
-                                    ? "bg-primary/15 border-primary/50 text-primary shadow-sm shadow-primary/10"
-                                    : "bg-muted/40 border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border"
-                                }`}
-                              >
-                                {preset}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    {/* Section 3: Endorsement Quote */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.26 }}
-                      className={`rounded-2xl border p-5 sm:p-6 space-y-5 transition-all duration-300 backdrop-blur-sm ${
-                        sec3Done ? "border-primary/30 bg-card/80" : "border-border/60 bg-card/60"
-                      }`}
-                    >
-                      <SectionHeader
-                        step={3}
-                        icon={Quote}
-                        title="Endorsement & Recommendation"
-                        subtitle="Share your thoughts on Khalfan's technical expertise, problem solving, delivery, or communication."
-                      />
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-semibold text-foreground">
-                            Your Quote / Testimonial <span className="text-red-400">*</span>
-                          </label>
-                          <span
-                            className={`text-[10px] font-mono tabular-nums transition-colors ${
-                              formData.quote.length > 50 ? "text-primary" : "text-muted-foreground"
-                            }`}
-                          >
-                            {formData.quote.length} chars
-                          </span>
-                        </div>
-                        <textarea
-                          rows={5}
-                          required
-                          placeholder="e.g. Khalfan engineered our national digital portal with remarkable reliability. His mastery of both network infrastructure and decoupled web applications delivered a system that effortlessly handled high concurrent loads..."
-                          value={formData.quote}
-                          onChange={(e) => handleChange("quote", e.target.value)}
-                          className={`${inputCls} resize-y leading-relaxed min-h-[140px]`}
-                        />
-                      </div>
-                    </motion.div>
-
-                    {/* Section 4: Contact Information */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.34 }}
-                      className={`rounded-2xl border p-5 sm:p-6 space-y-5 transition-all duration-300 backdrop-blur-sm ${
-                        sec4Done ? "border-primary/30 bg-card/80" : "border-border/60 bg-card/60"
-                      }`}
-                    >
-                      <SectionHeader
-                        step={4}
-                        icon={Mail}
-                        title="Contact Information"
-                        subtitle="Used for professional verification and optional direct referee contact buttons."
-                      />
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-semibold text-foreground">
-                            Work / Professional Email <span className="text-red-400">*</span>
-                          </label>
-                          <input
-                            type="email"
-                            required
-                            placeholder="referee@company.org"
-                            value={formData.email}
-                            onChange={(e) => handleChange("email", e.target.value)}
-                            className={inputCls}
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-semibold text-foreground">
-                            Phone Number{" "}
-                            <span className="text-muted-foreground text-[10px] font-normal">(optional)</span>
-                          </label>
-                          <input
-                            type="tel"
-                            placeholder="+254 7..."
-                            value={formData.phone}
-                            onChange={(e) => handleChange("phone", e.target.value)}
-                            className={inputCls}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-foreground">
-                          LinkedIn Profile URL{" "}
-                          <span className="text-muted-foreground text-[10px] font-normal">(optional)</span>
-                        </label>
-                        <input
-                          type="text"
-                          inputMode="url"
-                          placeholder="e.g. linkedin.com/in/username or https://..."
-                          value={formData.linkedin}
-                          onChange={(e) => handleChange("linkedin", e.target.value)}
-                          className={inputCls}
-                        />
-                      </div>
-                    </motion.div>
-
-                    {/* Privacy Notice */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.4 }}
-                      className="flex items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/15 text-[11px] text-muted-foreground leading-relaxed"
-                    >
-                      <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                      <span>
-                        By submitting, you consent to having your name, title, company, and quote
-                        showcased on Khalfan Athman&apos;s professional portfolio. Your endorsement is
-                        held for administrative review before going live.
+                      <span className="text-[11px] text-muted-foreground font-mono tabular-nums">
+                        {currentStep + 1} / {STEPS.length}
                       </span>
-                    </motion.div>
 
-                    {/* Submit Button */}
-                    <motion.button
-                      type="submit"
-                      disabled={submitting}
-                      whileHover={{ scale: submitting ? 1 : 1.01 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="relative w-full py-4 sm:py-3.5 px-6 rounded-2xl bg-gradient-to-r from-primary via-emerald-500 to-teal-500 hover:from-primary/90 hover:via-emerald-500/90 hover:to-teal-500/90 text-white font-bold text-sm shadow-xl shadow-primary/25 transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-h-[52px]"
-                    >
-                      {submitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Submitting Endorsement...
-                        </>
+                      {currentStep < STEPS.length - 1 ? (
+                        <button
+                          type="button"
+                          onClick={goNext}
+                          className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-bold transition-all shadow-md shadow-primary/20"
+                        >
+                          Next
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
                       ) : (
-                        <>
-                          <Send className="w-4 h-4" />
-                          Submit Professional Endorsement
-                        </>
+                        <motion.button
+                          type="button"
+                          onClick={() => handleSubmit()}
+                          disabled={submitting}
+                          whileHover={{ scale: submitting ? 1 : 1.02 }}
+                          whileTap={{ scale: 0.97 }}
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary via-emerald-500 to-teal-500 hover:opacity-90 text-white font-bold text-sm shadow-lg shadow-primary/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {submitting ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Submitting…
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-4 h-4" />
+                              Submit Endorsement
+                            </>
+                          )}
+                        </motion.button>
                       )}
-                    </motion.button>
-                  </form>
+                    </div>
+                  </div>
                 </div>
 
-                {/* RIGHT: Live Preview */}
+                {/* RIGHT: Live Preview + progress */}
                 <div
                   className={`lg:col-span-5 lg:sticky lg:top-28 space-y-4 ${
                     mobileTab === "form" ? "hidden lg:block" : "block"
@@ -745,14 +859,12 @@ export default function SubmitReferenceClient() {
                     clients, employers, and partners:
                   </p>
 
-                  {/* Rendered Reference Card */}
+                  {/* Reference card preview */}
                   <motion.div
                     layout
                     className="relative rounded-2xl border border-border/70 bg-card/95 backdrop-blur-md p-6 shadow-xl overflow-hidden"
                   >
-                    {/* Gradient top stripe */}
                     <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary/60 via-emerald-400/40 to-transparent rounded-t-2xl" />
-
                     <Quote className="absolute top-5 right-5 h-10 w-10 text-primary/8" />
 
                     <p className="text-sm text-muted-foreground leading-relaxed mb-6 italic min-h-[4rem] break-words pr-8">
@@ -820,16 +932,16 @@ export default function SubmitReferenceClient() {
                     )}
                   </motion.div>
 
-                  {/* Form Progress Tracker */}
+                  {/* Form progress tracker */}
                   <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-4 space-y-2.5">
                     <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                       Form Progress
                     </p>
                     {[
-                      { label: "Personal Details", done: sec1Done },
-                      { label: "Relationship", done: sec2Done },
-                      { label: "Endorsement Quote", done: sec3Done },
-                      { label: "Contact Info", done: sec4Done },
+                      { label: "Personal Details",   done: sec1Done },
+                      { label: "Relationship",        done: sec2Done },
+                      { label: "Endorsement Quote",   done: sec3Done },
+                      { label: "Contact Info",        done: sec4Done },
                     ].map(({ label, done }) => (
                       <div key={label} className="flex items-center gap-2.5">
                         <div
@@ -864,7 +976,7 @@ export default function SubmitReferenceClient() {
                     </div>
                   </div>
 
-                  {/* Mobile quick actions in preview mode */}
+                  {/* Mobile: preview → back / submit */}
                   <div className="lg:hidden flex items-center gap-3">
                     <button
                       type="button"
@@ -877,21 +989,25 @@ export default function SubmitReferenceClient() {
                     <button
                       type="button"
                       onClick={() => handleSubmit()}
-                      disabled={submitting}
+                      disabled={submitting || currentStep < STEPS.length - 1}
                       className="flex-1 py-3 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
                     >
-                      {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                      {submitting
+                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        : <Send className="w-3.5 h-3.5" />
+                      }
                       Submit Now
                     </button>
                   </div>
                 </div>
+
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Submission Progress Modal */}
+      {/* Submission progress modal */}
       <SubmissionProgressModal
         isOpen={showProgressModal}
         stage={progressStage}
