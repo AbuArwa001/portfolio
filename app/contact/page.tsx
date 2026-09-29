@@ -1,11 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
   Phone,
@@ -16,8 +12,98 @@ import {
   MessageSquare,
   Paperclip,
   X,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Sparkles,
+  Clock,
+  ExternalLink,
 } from "lucide-react";
 
+/* ── shared input style ─────────────────────────────────────── */
+const inputCls =
+  "w-full px-4 py-3 rounded-xl border border-border/60 bg-background/50 " +
+  "text-sm text-foreground placeholder:text-muted-foreground/40 " +
+  "focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 " +
+  "transition-all duration-200 hover:border-border/80 min-h-[44px]";
+
+/* ── field wrapper with floating error ──────────────────────── */
+function Field({
+  label,
+  error,
+  required,
+  children,
+}: {
+  label: string;
+  error?: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-semibold text-foreground">
+        {label}
+        {required && <span className="text-red-400 ml-0.5">*</span>}
+      </label>
+      {children}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-[11px] text-red-400 flex items-center gap-1"
+          >
+            <AlertCircle className="w-3 h-3 shrink-0" />
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ── sidebar info row ───────────────────────────────────────── */
+function InfoRow({
+  icon: Icon,
+  label,
+  value,
+  href,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  href?: string;
+}) {
+  const inner = (
+    <div className="flex items-start gap-3.5 p-3.5 rounded-xl hover:bg-primary/5 transition-colors duration-200 group">
+      <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-primary/15 transition-colors">
+        <Icon className="w-3.5 h-3.5 text-primary" />
+      </div>
+      <div>
+        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
+        <p className="text-sm font-medium text-foreground mt-0.5 group-hover:text-primary transition-colors">
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+
+  if (href) {
+    return (
+      <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">
+        {inner}
+      </a>
+    );
+  }
+  return inner;
+}
+
+/* ════════════════════════════════════════════════════════════
+   MAIN PAGE
+════════════════════════════════════════════════════════════ */
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: "",
@@ -28,492 +114,478 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isMounted, setIsMounted] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  useEffect(() => { setIsMounted(true); }, []);
 
+  /* ── validation ── */
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
-    }
-
-    if (!formData.subject.trim()) {
-      newErrors.subject = "Subject is required";
-    }
-
-    if (!formData.message.trim()) {
-      newErrors.message = "Message is required";
-    } else if (formData.message.length < 10) {
-      newErrors.message = "Message should be at least 10 characters";
-    }
-
-    // Validate attachments
+    const e: Record<string, string> = {};
+    if (!formData.name.trim())    e.name    = "Name is required";
+    if (!formData.email.trim())   e.email   = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+                                  e.email   = "Please enter a valid email";
+    if (!formData.subject.trim()) e.subject = "Subject is required";
+    if (!formData.message.trim()) e.message = "Message is required";
+    else if (formData.message.length < 10)
+                                  e.message = "Message should be at least 10 characters";
     if (attachments.length > 0) {
-      const totalSize = attachments.reduce(
-        (total, file) => total + file.size,
-        0
-      );
-      if (totalSize > 10 * 1024 * 1024) {
-        // 10MB limit
-        newErrors.attachments = "Total attachment size cannot exceed 10MB";
-      }
-
-      for (const file of attachments) {
-        if (file.size > 5 * 1024 * 1024) {
-          // 5MB per file limit
-          newErrors.attachments = "Individual files cannot exceed 5MB";
-          break;
-        }
-      }
+      const total = attachments.reduce((s, f) => s + f.size, 0);
+      if (total > 10 * 1024 * 1024) e.attachments = "Total attachments cannot exceed 10 MB";
+      for (const f of attachments)
+        if (f.size > 5 * 1024 * 1024) { e.attachments = "Individual files cannot exceed 5 MB"; break; }
     }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-
-    // Clear submit error when user starts typing
-    if (submitError) {
-      setSubmitError("");
-    }
+    setFormData((p) => ({ ...p, [name]: value }));
+    if (errors[name]) setErrors((p) => ({ ...p, [name]: "" }));
+    if (submitError)  setSubmitError("");
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-
-    const newFiles = Array.from(files);
-
-    // Check for duplicates
-    const filteredFiles = newFiles.filter(
-      (newFile) =>
-        !attachments.some(
-          (existingFile) =>
-            existingFile.name === newFile.name &&
-            existingFile.size === newFile.size
-        )
+    const next = Array.from(files).filter(
+      (f) => !attachments.some((a) => a.name === f.name && a.size === f.size)
     );
-
-    setAttachments((prev) => [...prev, ...filteredFiles]);
-
-    // Clear the input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    setAttachments((p) => [...p, ...next]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const removeAttachment = (index: number) => {
-    setAttachments((prev) => prev.filter((_, i) => i !== index));
-  };
+  const removeAttachment = (i: number) =>
+    setAttachments((p) => p.filter((_, idx) => idx !== i));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
     setSubmitError("");
 
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      formDataToSend.append("email", formData.email);
-      formDataToSend.append("subject", formData.subject);
-      formDataToSend.append("message", formData.message);
+      const fd = new FormData();
+      fd.append("name",    formData.name);
+      fd.append("email",   formData.email);
+      fd.append("subject", formData.subject);
+      fd.append("message", formData.message);
+      attachments.forEach((f) => fd.append("attachments", f));
 
-      // Append attachments
-      attachments.forEach((file) => {
-        formDataToSend.append("attachments", file);
-      });
+      const res  = await fetch("/api/contact", { method: "POST", body: fd });
+      const data = await res.json();
 
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        body: formDataToSend,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to send message");
-      }
+      if (!res.ok) throw new Error(data.error || "Failed to send message");
 
       setIsSubmitted(true);
       setFormData({ name: "", email: "", subject: "", message: "" });
       setAttachments([]);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      setSubmitError(
-        error instanceof Error ? error.message : "An unexpected error occurred"
-      );
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  /* ── loading skeleton ── */
   if (!isMounted) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
 
+  /* ── page ── */
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-          Get In Touch
-        </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-          Have a question or want to work together? I&apos;d love to hear from
-          you!
-        </p>
+    <div className="relative min-h-screen bg-background selection:bg-primary/30 pt-24 pb-20 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
+
+      {/* Ambient blobs */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[1200px] h-[600px] opacity-[0.12] pointer-events-none -z-10">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary rounded-full blur-[160px]" />
+        <div className="absolute top-20 right-1/4 w-[300px] h-[300px] bg-violet-600 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 left-1/2 w-[200px] h-[200px] bg-emerald-500 rounded-full blur-[100px]" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Contact Information */}
-        <div className="lg:col-span-1 space-y-6">
-          <Card className="hover:shadow-lg transition-shadow duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <MessageSquare className="mr-2 h-5 w-5 text-primary" />
+      <div className="container max-w-6xl mx-auto">
+
+        {/* ── Header ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-2xl mx-auto mb-14"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 mb-5 text-xs font-semibold text-primary bg-primary/10 rounded-full border border-primary/20"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Open to Opportunities &amp; Collaboration
+          </motion.div>
+
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground mb-4 leading-tight font-heading">
+            Let&apos;s{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-400 to-teal-400">
+              Connect
+            </span>
+          </h1>
+          <p className="text-base text-muted-foreground leading-relaxed">
+            Have a project, opportunity, or idea? Drop me a message and I&apos;ll
+            get back to you — usually within 24 hours.
+          </p>
+        </motion.div>
+
+        {/* ── Two-column grid ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+          {/* ── LEFT: Sidebar ── */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="lg:col-span-4 space-y-4 lg:sticky lg:top-28"
+          >
+            {/* Contact info card */}
+            <div className="rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md p-5 shadow-xl">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary/60 via-emerald-400/30 to-transparent rounded-t-2xl" />
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary mb-4">
                 Contact Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-start p-3 rounded-lg hover:bg-accent/50 transition-colors duration-200">
-                <Mail className="h-5 w-5 mr-3 text-primary mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium">Email</p>
+              </p>
+              <div className="space-y-1">
+                <InfoRow
+                  icon={Mail}
+                  label="Email"
+                  value="khalfan@khalfanathman.dev"
+                  href="mailto:khalfan@khalfanathman.dev"
+                />
+                <InfoRow
+                  icon={Phone}
+                  label="Phone"
+                  value="+254 719 401 851"
+                  href="tel:+254719401851"
+                />
+                <InfoRow
+                  icon={MapPin}
+                  label="Location"
+                  value="Nairobi, Kenya"
+                />
+              </div>
+            </div>
+
+            {/* Social links card */}
+            <div className="rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md p-5 shadow-xl">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary mb-4">
+                Connect Online
+              </p>
+              <div className="space-y-2.5">
+                {[
+                  {
+                    icon: Linkedin,
+                    label: "LinkedIn",
+                    handle: "@khalfaniathman",
+                    href: "https://www.linkedin.com/in/khalfaniathman",
+                    color: "from-blue-500/20 to-blue-600/10 border-blue-500/30",
+                    iconColor: "text-blue-400",
+                  },
+                  {
+                    icon: Github,
+                    label: "GitHub",
+                    handle: "@AbuArwa001",
+                    href: "https://github.com/AbuArwa001",
+                    color: "from-zinc-500/20 to-zinc-600/10 border-zinc-500/30",
+                    iconColor: "text-zinc-400",
+                  },
+                ].map(({ icon: Icon, label, handle, href, color, iconColor }) => (
                   <a
-                    href="mailto:khalfan@khalfanathman.dev"
-                    className="text-muted-foreground hover:text-primary transition-colors"
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-3 p-3.5 rounded-xl border bg-gradient-to-r ${color} hover:opacity-90 transition-all duration-200 group`}
                   >
-                    khalfan@khalfanathman.dev
+                    <Icon className={`w-4 h-4 ${iconColor} shrink-0`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-foreground">{label}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{handle}</p>
+                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
                   </a>
-                </div>
+                ))}
               </div>
-              <div className="flex items-start p-3 rounded-lg hover:bg-accent/50 transition-colors duration-200">
-                <Phone className="h-5 w-5 mr-3 text-primary mt-0.5 flex-shrink-0" />
+            </div>
+
+            {/* Response time card */}
+            <div className="rounded-2xl border border-border/50 bg-primary/5 border-primary/20 p-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4 text-primary" />
+                </div>
                 <div>
-                  <p className="font-medium">Phone</p>
-                  <a
-                    href="tel:+254719401851"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    +254 719 401851
-                  </a>
-                </div>
-              </div>
-              <div className="flex items-start p-3 rounded-lg hover:bg-accent/50 transition-colors duration-200">
-                <MapPin className="h-5 w-5 mr-3 text-primary mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium">Location</p>
-                  <p className="text-muted-foreground">Nairobi, Kenya</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow duration-300">
-            <CardHeader>
-              <CardTitle>Connect With Me</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                variant="outline"
-                className="w-full justify-start h-12 transition-all duration-200 hover:scale-[1.02]"
-                asChild
-              >
-                <a
-                  href="https://www.linkedin.com/in/khalfaniathman"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center"
-                >
-                  <Linkedin className="w-4 h-4 mr-3" />
-                  LinkedIn
-                </a>
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start h-12 transition-all duration-200 hover:scale-[1.02]"
-                asChild
-              >
-                <a
-                  href="https://github.com/AbuArwa001"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center"
-                >
-                  <Github className="w-4 h-4 mr-3" />
-                  GitHub
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Response Time Info */}
-          <Card className="bg-muted/50 border-dashed">
-            <CardContent className="p-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg
-                    className="w-6 h-6 text-primary"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="font-semibold mb-1">Quick Response</h3>
-                <p className="text-sm text-muted-foreground">
-                  I typically respond within 24 hours
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Contact Form */}
-        <div className="lg:col-span-2">
-          <Card className="hover:shadow-lg transition-shadow duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Send className="mr-2 h-5 w-5 text-primary" />
-                Send Me a Message
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isSubmitted ? (
-                <div className="text-center py-8 animate-fade-in">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg
-                      className="w-8 h-8 text-green-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2 text-green-800">
-                    Message Sent Successfully!
-                  </h3>
-                  <p className="text-muted-foreground mb-6">
-                    Thank you for your message. I&apos;ll get back to you as
-                    soon as possible.
+                  <p className="text-sm font-bold text-foreground">Quick Response</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    I typically reply within 24 hours
                   </p>
-                  <Button
-                    onClick={() => setIsSubmitted(false)}
-                    className="animate-pulse"
-                  >
-                    Send Another Message
-                  </Button>
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {submitError && (
-                    <div className="p-3 bg-destructive/10 border border-destructive rounded-md text-destructive">
-                      {submitError}
-                    </div>
-                  )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Name *</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        className={errors.name ? "border-destructive" : ""}
-                        placeholder="Your full name"
-                      />
-                      {errors.name && (
-                        <p className="text-sm text-destructive">
-                          {errors.name}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email *</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className={errors.email ? "border-destructive" : ""}
-                        placeholder="your.email@example.com"
-                      />
-                      {errors.email && (
-                        <p className="text-sm text-destructive">
-                          {errors.email}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">Subject *</Label>
-                    <Input
-                      id="subject"
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleChange}
-                      className={errors.subject ? "border-destructive" : ""}
-                      placeholder="What is this regarding?"
-                    />
-                    {errors.subject && (
-                      <p className="text-sm text-destructive">
-                        {errors.subject}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Message *</Label>
-                    <Textarea
-                      id="message"
-                      name="message"
-                      rows={5}
-                      value={formData.message}
-                      onChange={handleChange}
-                      className={errors.message ? "border-destructive" : ""}
-                      placeholder="Tell me how I can help you..."
-                      maxLength={500}
-                    />
-                    {errors.message && (
-                      <p className="text-sm text-destructive">
-                        {errors.message}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground text-right">
-                      {formData.message.length}/500 characters
-                    </p>
-                  </div>
+              </div>
+            </div>
+          </motion.div>
 
-                  {/* File Attachment Section */}
-                  <div className="space-y-2">
-                    <Label htmlFor="attachments">Attachments (Optional)</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="attachments"
-                        ref={fileInputRef}
-                        type="file"
-                        multiple
-                        onChange={handleFileSelect}
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-2"
-                      >
-                        <Paperclip className="h-4 w-4" />
-                        Add Files
-                      </Button>
-                      <span className="text-sm text-muted-foreground">
-                        Max 5MB per file, 10MB total
-                      </span>
-                    </div>
+          {/* ── RIGHT: Form ── */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="lg:col-span-8"
+          >
+            <div className="relative rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md shadow-2xl overflow-hidden">
+              {/* Top gradient stripe */}
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary/70 via-emerald-400/50 to-teal-400/30" />
 
-                    {errors.attachments && (
-                      <p className="text-sm text-destructive">
-                        {errors.attachments}
-                      </p>
-                    )}
+              <div className="p-6 sm:p-8">
+                {/* Card header */}
+                <div className="flex items-center gap-3 mb-7">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <MessageSquare className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-foreground">Send Me a Message</h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">All fields marked * are required</p>
+                  </div>
+                </div>
 
-                    {attachments.length > 0 && (
-                      <div className="mt-3 space-y-2">
-                        <p className="text-sm font-medium">Selected files:</p>
-                        <div className="space-y-2">
-                          {attachments.map((file, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center justify-between p-2 bg-muted rounded-md"
-                            >
-                              <div className="flex items-center gap-2">
-                                <Paperclip className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm truncate max-w-xs">
-                                  {file.name}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  ({(file.size / 1024).toFixed(0)} KB)
-                                </span>
-                              </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => removeAttachment(index)}
-                                className="h-6 w-6"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
+                <AnimatePresence mode="wait">
+                  {/* ── SUCCESS STATE ── */}
+                  {isSubmitted ? (
+                    <motion.div
+                      key="success"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      className="py-12 text-center"
+                    >
+                      <div className="relative w-20 h-20 mx-auto mb-6">
+                        <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping [animation-duration:2s] [animation-iteration-count:3]" />
+                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-emerald-400/20 border border-primary/30 flex items-center justify-center shadow-xl shadow-primary/10">
+                          <CheckCircle2 className="w-10 h-10 text-primary" />
                         </div>
                       </div>
-                    )}
-                  </div>
 
-                  <Button
-                    type="submit"
-                    className="w-full h-12 text-base transition-all duration-200 hover:scale-[1.02]"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="mr-2 h-4 w-4" />
-                        Send Message
-                      </>
-                    )}
-                  </Button>
-                </form>
-              )}
-            </CardContent>
-          </Card>
+                      <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-primary/10 text-primary border border-primary/20 mb-5">
+                        Message Delivered
+                      </span>
+
+                      <h3 className="text-2xl font-extrabold text-foreground mb-3 font-heading">
+                        Message Sent!
+                      </h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto mb-8">
+                        Thanks for reaching out. I&apos;ll review your message and get
+                        back to you as soon as possible — usually within 24 hours.
+                      </p>
+                      <button
+                        onClick={() => setIsSubmitted(false)}
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border border-border/80 bg-background/80 hover:bg-muted text-sm font-semibold text-foreground transition-all"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        Send Another Message
+                      </button>
+                    </motion.div>
+
+                  ) : (
+                    /* ── FORM ── */
+                    <motion.form
+                      key="form"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onSubmit={handleSubmit}
+                      noValidate
+                      className="space-y-5"
+                    >
+                      {/* Submit error */}
+                      <AnimatePresence>
+                        {submitError && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            className="flex items-start gap-3 p-4 rounded-2xl border border-red-500/30 bg-red-500/[0.07] text-red-400 text-sm"
+                          >
+                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                            <span>{submitError}</span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Name + Email row */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Field label="Full Name" error={errors.name} required>
+                          <input
+                            id="name"
+                            name="name"
+                            type="text"
+                            autoFocus
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder="e.g. Ahmed Salim"
+                            className={`${inputCls} ${errors.name ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/20" : ""}`}
+                          />
+                        </Field>
+                        <Field label="Email Address" error={errors.email} required>
+                          <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder="you@example.com"
+                            className={`${inputCls} ${errors.email ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/20" : ""}`}
+                          />
+                        </Field>
+                      </div>
+
+                      {/* Subject */}
+                      <Field label="Subject" error={errors.subject} required>
+                        <input
+                          id="subject"
+                          name="subject"
+                          type="text"
+                          value={formData.subject}
+                          onChange={handleChange}
+                          placeholder="What is this regarding?"
+                          className={`${inputCls} ${errors.subject ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/20" : ""}`}
+                        />
+                      </Field>
+
+                      {/* Message */}
+                      <Field label="Message" error={errors.message} required>
+                        <textarea
+                          id="message"
+                          name="message"
+                          rows={6}
+                          maxLength={500}
+                          value={formData.message}
+                          onChange={handleChange}
+                          placeholder="Tell me how I can help you..."
+                          className={`${inputCls} resize-y leading-relaxed min-h-[140px] ${errors.message ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/20" : ""}`}
+                        />
+                        <div className="flex justify-end mt-1">
+                          <span
+                            className={`text-[10px] font-mono tabular-nums transition-colors ${
+                              formData.message.length > 450 ? "text-amber-400" : "text-muted-foreground"
+                            }`}
+                          >
+                            {formData.message.length} / 500
+                          </span>
+                        </div>
+                      </Field>
+
+                      {/* Attachments */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-foreground">
+                          Attachments{" "}
+                          <span className="text-muted-foreground font-normal">(optional · max 5 MB / file)</span>
+                        </label>
+
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          multiple
+                          onChange={handleFileSelect}
+                          className="hidden"
+                          id="attachments"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/70 bg-background/60 hover:bg-muted text-xs font-semibold text-foreground transition-all duration-200"
+                        >
+                          <Paperclip className="w-3.5 h-3.5 text-primary" />
+                          Add Files
+                        </button>
+
+                        <AnimatePresence>
+                          {errors.attachments && (
+                            <motion.p
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="text-[11px] text-red-400 flex items-center gap-1"
+                            >
+                              <AlertCircle className="w-3 h-3" />
+                              {errors.attachments}
+                            </motion.p>
+                          )}
+                        </AnimatePresence>
+
+                        {attachments.length > 0 && (
+                          <div className="space-y-2 mt-2">
+                            {attachments.map((file, i) => (
+                              <motion.div
+                                key={`${file.name}-${i}`}
+                                initial={{ opacity: 0, x: -8 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 8 }}
+                                className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/50 bg-muted/40 text-xs"
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <Paperclip className="w-3.5 h-3.5 text-primary/60 shrink-0" />
+                                  <span className="truncate text-foreground font-medium max-w-[200px]">
+                                    {file.name}
+                                  </span>
+                                  <span className="text-muted-foreground shrink-0">
+                                    ({(file.size / 1024).toFixed(0)} KB)
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeAttachment(i)}
+                                  className="w-5 h-5 rounded-md hover:bg-red-500/15 flex items-center justify-center text-muted-foreground hover:text-red-400 transition-colors shrink-0 ml-2"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </motion.div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Submit */}
+                      <motion.button
+                        type="submit"
+                        disabled={isSubmitting}
+                        whileHover={{ scale: isSubmitting ? 1 : 1.01 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-primary via-emerald-500 to-teal-500 hover:opacity-90 text-white font-bold text-sm shadow-lg shadow-primary/25 transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed min-h-[50px]"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Sending…
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4" />
+                            Send Message
+                          </>
+                        )}
+                      </motion.button>
+                    </motion.form>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </motion.div>
+
         </div>
       </div>
     </div>
