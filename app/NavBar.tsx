@@ -55,11 +55,16 @@ export default function NavBar() {
 
       {/* ── main nav ── */}
       <motion.div
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        initial={{ y: -80, opacity: 0, paddingTop: 0, paddingLeft: 0, paddingRight: 0 }}
+        animate={{
+          y: 0,
+          opacity: 1,
+          paddingTop: scrolled ? 10 : 0,
+          paddingLeft: scrolled ? 12 : 0,
+          paddingRight: scrolled ? 12 : 0,
+        }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         className="fixed top-0 left-0 right-0 z-50 print:hidden flex justify-center"
-        style={{ paddingTop: scrolled ? 10 : 0, paddingLeft: scrolled ? 16 : 0, paddingRight: scrolled ? 16 : 0 }}
       >
         <motion.nav
           animate={scrolled ? "pill" : "bar"}
@@ -74,7 +79,7 @@ export default function NavBar() {
             },
             pill: {
               borderRadius: 20,
-              maxWidth: 980,
+              maxWidth: 1100,
               boxShadow: "0 8px 40px -8px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06)",
               backgroundColor: "color-mix(in oklch, var(--background) 82%, transparent)",
               backdropFilter: "blur(20px)",
@@ -82,7 +87,7 @@ export default function NavBar() {
             },
           }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full border-border/50 transition-colors"
+          className="w-full border-border/50 transition-colors overflow-hidden"
         >
           {/* subtle top rim glow when pill */}
           <AnimatePresence>
@@ -97,7 +102,7 @@ export default function NavBar() {
             )}
           </AnimatePresence>
 
-          <div className="px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+          <div className="px-4 sm:px-5 h-14 flex items-center gap-3 min-w-0">
 
             {/* ── Logo ── */}
             <Link href="/" className="group flex items-center gap-2.5 shrink-0">
@@ -118,7 +123,7 @@ export default function NavBar() {
             </Link>
 
             {/* ── Desktop links ── */}
-            <div className="hidden lg:flex items-center gap-0.5">
+            <div className="hidden lg:flex items-center gap-0 flex-1 min-w-0 justify-center">
               {NAV_LINKS.map((link) => {
                 const active =
                   pathname === link.href ||
@@ -128,7 +133,7 @@ export default function NavBar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`relative px-3.5 py-2 text-[13px] font-medium rounded-xl transition-colors duration-150 ${
+                    className={`relative px-2.5 py-2 text-[12.5px] font-medium rounded-xl transition-colors duration-150 whitespace-nowrap ${
                       active
                         ? "text-primary"
                         : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04] dark:hover:bg-white/[0.04]"
@@ -159,7 +164,7 @@ export default function NavBar() {
             </div>
 
             {/* ── Right actions ── */}
-            <div className="hidden md:flex items-center gap-1.5 shrink-0">
+            <div className="hidden md:flex items-center gap-1 shrink-0 ml-auto">
               {/* GitHub */}
               <a
                 href="https://github.com/AbuArwa001"
