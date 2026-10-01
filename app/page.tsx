@@ -21,6 +21,7 @@ import {
   ExternalLink,
   ChevronRight,
 } from "lucide-react";
+import CurrentlyStudyingBadge from "@/components/CurrentlyStudyingBadge";
 
 // ── Animation variants ─────────────────────────────────────────────────────
 const fadeUp: Variants = {
@@ -154,8 +155,8 @@ export default function LandingPage() {
               animate="show"
               className="space-y-7"
             >
-              {/* Badge */}
-              <motion.div variants={fadeUp}>
+              {/* Badges */}
+              <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-2.5">
                 <span className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold text-primary bg-primary/10 rounded-full border border-primary/20">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
@@ -163,6 +164,7 @@ export default function LandingPage() {
                   </span>
                   Network Engineer & Full-Stack Developer
                 </span>
+                <CurrentlyStudyingBadge variant="pill" />
               </motion.div>
 
               {/* Headline */}
