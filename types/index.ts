@@ -146,3 +146,19 @@ export interface Reference {
   created_at?: string;
 }
 
+export interface PublicStudyCertBadge {
+  code: string;
+  name: string;
+  vendor: string;
+  exam_code: string;
+  progress_pct: number;
+  status: string;
+}
+
+export interface PublicStudyBadgeData {
+  certifications: PublicStudyCertBadge[];
+  streak_days: number;
+  total_study_hours: number;
+  last_updated: string;
+}
+

@@ -11,6 +11,7 @@ import {
   Skill,
   Language,
   Certification,
+  PublicStudyBadgeData,
 } from "../types";
 import { getApiUrl } from "./config";
 import type { Reference } from "../app/references/ReferencesClient";
@@ -90,5 +91,8 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
+  },
+  studyBadge: {
+    get: (): Promise<PublicStudyBadgeData> => publicFetch("/study/public-badge/"),
   },
 };
